@@ -67,6 +67,7 @@ class Parser:
                     raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
             else:
                 raise SyntaxError("Invalid Function Name")
+        print("VALID FUNCTION")
 
     def checkFuncParameters(self):
         Terminate = False
@@ -85,7 +86,6 @@ class Parser:
                     raise SyntaxError("Invalid Parameter")
             else:
                 raise SyntaxError("Invalid Datatype")
-        print("VALID FUNCTION")
 
     def parseUntilLoop(self):
         Terminate = False
