@@ -1,3 +1,10 @@
-until ( x < 9 ) {
-    num random = 5;
-}
+func add(num a){
+  num c = 5;
+    repeat(num j=0;j<=10;j=j+2){
+        num random = 10;
+        until ( x <= 9 ) {
+            bool a = true;
+        }
+    } 
+}       
+

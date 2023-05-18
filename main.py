@@ -1,4 +1,4 @@
-from Variable_implementation import Parser,tokenize
+from Implementation import Parser,tokenize
 
 # Usage example
 program = open('./FAAM.txt','r').read()
@@ -14,6 +14,12 @@ program = open('./FAAM.txt','r').read()
 #     repeat(num j=0;j<=10;j=j+2){
 #         num random = 10;
 #     }   
+# }
+# until ( x < 9 ) {
+#     num random = 5;
+# }
+# func add(num a){
+#     num c = 5;
 # }
 tokens = tokenize(program)
 parser = Parser(tokens)
