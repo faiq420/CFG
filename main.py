@@ -2,13 +2,19 @@ from Variable_implementation import Parser,tokenize
 
 # Usage example
 program = open('./FAAM.txt','r').read()
-# program = 'num x,num y,num z  = 0;'
-# program = 'bool variable = false;'
-# program = 'fp x = abc;'
-# program = 'string variable = testing;'
-# program = 'num x;'
-# program = 'random variable = testing;'
-# program = 'string % = abc;'
+# num x,num y,num z  = 0;
+# bool variable = false;
+# fp x = abc;
+# string variable = testing;
+# num x;
+# random variable = testing;
+# string % = abc;
+# repeat(num i=0;i<=10;i=i+2){
+#     string text = "10";
+#     repeat(num j=0;j<=10;j=j+2){
+#         num random = 10;
+#     }   
+# }
 tokens = tokenize(program)
 parser = Parser(tokens)
 result = parser.parse()
