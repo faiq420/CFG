@@ -6,13 +6,13 @@ import re as reg
 def tokenize(program):
     tokens = reg.findall(
         r'true|false|[a-zA-Z_][a-zA-Z0-9_]*|[a-zA-Z]+|[0-9]+|[+-]*?[0-9]+.[0-9]+|<=|>=|==|!=|".*"|;|\S', program)
-    print(tokens)
+    print(tokens,len(tokens))
     return tokens
 
 # Parser implementation
-
 DATATYPES = ["num", "string", "bool","fp"]
-OPERATORS = ['==','!=','<=','>=']
+OPERATORS = ['==','!=','<=','>=','<','>']
+TEMPVAL = {}
 
 class Parser:
     def __init__(self, tokens):
@@ -27,6 +27,13 @@ class Parser:
             self.current_token = self.tokens[self.token_index]
         else:
             self.current_token = None
+
+    def conditionValue(self):
+        self.validateVariableName()
+        if TEMPVAL[self.current_token] is None:
+            raise SyntaxWarning("Variable not assigned a value!")
+        else:
+            return TEMPVAL[self.current_token]
 
     def parse(self):
         while (self.current_token):
@@ -75,6 +82,7 @@ class Parser:
             if self.current_token in DATATYPES:
                 self.increase()
                 newToken =  self.current_token
+                self.validateVariableName()
                 if(reg.match(r'[a-zA-Z]+',newToken)):
                     self.increase()
                     if self.current_token == ')':
@@ -91,6 +99,7 @@ class Parser:
         Terminate = False
         while (not Terminate):
             if self.current_token == "(":
+                # self.conditionValue()
                 self.increase()
                 self.checkUntilCondition()          
                 if (self.current_token == '{'):
@@ -132,11 +141,16 @@ class Parser:
         while (self.current_token != '}'):
             self.parse()
 
+    def validateVariableName(self):
+        if self.current_token in DATATYPES is not None:
+            raise NameError("Variable can not be named as Datatypes.")
+
     def checkLoopInitialization(self):
         if(self.current_token == "num"):
             local = self.current_token
             self.increase()
             local += self.current_token
+            self.validateVariableName()
             self.increase()
             local += self.current_token
             self.increase()
@@ -180,6 +194,7 @@ class Parser:
 
     def checkUntilCondition(self):
         cond = self.current_token
+        self.conditionValue()
         self.increase()
         if(self.current_token in OPERATORS):
             cond += self.current_token
@@ -196,6 +211,7 @@ class Parser:
     def declaration(self):
         Type = None
         re = False
+        key = None
         if(self.current_token in DATATYPES and not re):
             Type = self.current_token
         Terminate = False
@@ -204,7 +220,12 @@ class Parser:
                 if(re and self.current_token != Type):
                     raise SyntaxError("Mismatched Data types")
                 self.increase()
+                if Type == 'num':
+                    key = self.current_token
+                    temp = {key:None}
+                    TEMPVAL.update(temp) 
                 if reg.match(r"[a-zA-Z_][a-zA-Z0-9_]*", self.current_token) is not None:
+                    self.validateVariableName()
                     self.increase()
                     # if(Type != 'repeat' and self.tokens[len(self.tokens)-1] != ';'):
                     #     raise SyntaxError("Termination not detected")
@@ -223,6 +244,8 @@ class Parser:
                         if (Type == "num"):
                             if(reg.match(r'[0-9]+',self.current_token) is None):
                                 raise ValueError(f"Invalid value for type {Type}")
+                            else:
+                                TEMPVAL[key]=self.current_token
                         if (Type == "fp"):
                             if(reg.match(r'[+-]*?[0-9]+.[0-9]+',self.current_token) is None):
                                 raise ValueError(f"Invalid value for type {Type}")

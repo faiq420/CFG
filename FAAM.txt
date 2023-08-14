@@ -1,10 +1,10 @@
-func add(num a){
+func add(num a,num b){
   num c = 5;
-    repeat(num j=0;j<=10;j=j+2){
-        num random = 10;
-        until ( x <= 9 ) {
+    repeat(num j = 0 ; j <= 10 ;j=j + 2){
+        num random = 0;
+        fp algebra =-5.5;
+        until ( random <= 9 ) {
             bool a = true;
         }
     } 
-}       
-
+}  
