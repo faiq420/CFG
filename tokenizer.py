@@ -3,6 +3,7 @@ import re
 #classes
 DATATYPES = ["num", "string", "bool","fp"]
 ARRAY=["[","]"]
+BOOLEAN=["True","False"]
 RELATIONAL_OPERATORS = ['==','!=','<=','>=','<','>']
 LOGICAL_OPERATORS = ['&','|']
 ASSIGNMENT='='
@@ -34,21 +35,11 @@ class Tokenizer:
         self.class_part=''
         self.value_part=''
         self.line_number=''
+        charAtEndOfLiteral={}
 
     def increase(self):
         self.current += 1
         if (self.current < len(self.source)):
-            self.currentChar = self.source[self.current]
-            try:
-                self.nextChar = self.source[self.current + 1]
-            except:
-                self.nextChar = None
-        else:
-            self.currentChar = None
-
-    def retreat(self):
-        self.current -= 1
-        if (self.current > 0):
             self.currentChar = self.source[self.current]
             try:
                 self.nextChar = self.source[self.current + 1]
@@ -122,10 +113,11 @@ class Tokenizer:
                 while(self.currentChar!='#'):
                     self.increase()
                 self.increase()
+                continue
 
 
             #check for keywords
-            charAtEndOfLiteral={}
+            
             if(re.match(r"[a-zA-Z]$",self.currentChar)):
                 keyToken=self.currentChar
                 while(re.match(r"[a-zA-Z_][a-zA-Z0-9_]*$",keyToken)):
@@ -133,10 +125,9 @@ class Tokenizer:
                     keyToken += self.currentChar
                 keyToken=keyToken.replace(" ", "")
                 if(not re.match(r"[a-zA-Z]$",keyToken[len(keyToken)-1])):
-                    charAtEndOfLiteral=self.checkForSymbols(keyToken[len(keyToken)-1])
-                    # self.tokens.append(charAtEndOfLiteral)
-                    # self.current -=1
+                    charAtEndOfLiteral=self.checkForSymbols(keyToken[len(keyToken)-1])             
                     keyToken = keyToken[:len(keyToken)-1]
+                    self.current -=1
                 contains_digits = any(char.isdigit() for char in keyToken)
                 contains_underscore = '_' in keyToken
                 if contains_digits or contains_underscore:
@@ -146,6 +137,8 @@ class Tokenizer:
                     self.tokens.append(obj)
                     self.increase()
                     continue
+                    if(charAtEndOfLiteral):
+                        self.tokens.append(charAtEndOfLiteral)
                 else:
                     if(keyToken in DATATYPES):
                         obj['class_part']="DataType"
@@ -161,50 +154,57 @@ class Tokenizer:
                         self.tokens.append(obj)
                         self.increase()
                         continue
-                    elif(keyToken in "either"):
+                    elif(keyToken == "either"):
                         obj['class_part']="else_if"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
                         self.increase()
                         continue
-                    elif(keyToken in "otherwise"):
+                    elif(keyToken == "otherwise"):
                         obj['class_part']="else"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
                         self.increase()
                         continue
-                    elif(keyToken in "func"):
+                    elif(keyToken == "func"):
                         obj['class_part']="function"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
                         self.increase()
                         continue
-                    elif(keyToken in "repeat"):
+                    elif(keyToken == "repeat"):
                         obj['class_part']="for"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
                         self.increase()
                         continue
-                    elif(keyToken in "until"):
+                    elif(keyToken == "until"):
                         obj['class_part']="while"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
                         self.increase()
                         continue
-                    elif(keyToken in "void"):
+                    elif(keyToken == "void"):
                         obj['class_part']="void"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
                         self.increase()
                         continue
-                    elif(keyToken in "return"):
+                    elif(keyToken == "return"):
                         obj['class_part']="return"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken in BOOLEAN):
+                        obj['class_part']="bool_const"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
@@ -217,19 +217,21 @@ class Tokenizer:
                         self.tokens.append(obj)
                         self.increase()
                         continue
-            if(charAtEndOfLiteral):
-                print(charAtEndOfLiteral)
-                self.tokens.append(charAtEndOfLiteralToken)
+                    if(charAtEndOfLiteral):
+                        print(charAtEndOfLiteral)
+                        self.tokens.append(charAtEndOfLiteral)    
+            # if(charAtEndOfLiteral):
+            #     print(charAtEndOfLiteral)
+            #     self.tokens.append(charAtEndOfLiteral)
     
                 #to check for string literals
             if (self.currentChar == '"'):
-                self.increase()
                 stringToken = self.currentChar
                 self.increase()
                 while (self.currentChar != '"'):
                     stringToken += self.currentChar
                     self.increase()
-                # stringToken += self.currentChar
+                stringToken += self.currentChar
                 obj['class_part']="str_const"
                 obj['value_part']=stringToken
                 obj['line#']=line_Number
@@ -256,14 +258,42 @@ class Tokenizer:
                 #CHECK FOR NUMBERS
 
             if(re.match(r"[0-9]$",self.currentChar)):
-                numberToken=self.currentChar
-                while(re.match(r"[0-9]+$",numberToken)):
+                numericalToken = self.currentChar
+                self.increase()
+                numericalToken += self.currentChar
+                while(re.match(r"[0-9]+$",numericalToken)):
                     self.increase()
-                    numberToken += self.currentChar
-                obj['class_part']="int_const"
-                obj['value_part']=numberToken
-                obj['line#']=line_Number
-                self.tokens.append(obj)#numericalToken[:len(numericalToken)-1]
+                    numericalToken += self.currentChar
+                numericalToken=numericalToken.replace(" ", "")                
+                if(not re.match(r"[0-9]$",numericalToken[len(numericalToken)-1]) and numericalToken[len(numericalToken)-1]!='.'):                    
+                    charAtEndOfLiteral=self.checkForSymbols(numericalToken[len(numericalToken)-1])
+                    numericalToken = numericalToken[:len(numericalToken)-1]
+                    self.current -=1
+
+                if(numericalToken[len(numericalToken)-1] == '.'):
+                    self.increase()
+                    fpToken=numericalToken
+                    fpToken+=self.currentChar
+                    print(fpToken)
+                    while(re.match(r"[0-9]+.[0-9]+$",fpToken)):
+                        self.increase()
+                        fpToken += self.currentChar
+                    fpToken=fpToken.replace(" ", "")                
+                    if(not re.match(r"[0-9]$",fpToken[len(fpToken)-1])):                    
+                        charAtEndOfLiteral=self.checkForSymbols(fpToken[len(fpToken)-1])
+                        fpToken = fpToken[:len(fpToken)-1]
+                        self.current -=1
+                    obj['class_part']="FP_const"
+                    obj['value_part']=fpToken
+                    obj['line#']=line_Number
+                else:
+                    obj['class_part']="int_const"
+                    obj['value_part']=numericalToken
+                    obj['line#']=line_Number
+                self.tokens.append(obj)
+                self.increase()
+                continue
+                
 
             if(self.currentChar in '-+' and re.match(r"[0-9]$",self.nextChar)):
                 numericalToken = self.currentChar
@@ -272,12 +302,25 @@ class Tokenizer:
                 while(re.match(r"[-+][0-9]+$",numericalToken)):
                     self.increase()
                     numericalToken += self.currentChar
-                if(self.nextChar == '.'):
+                numericalToken=numericalToken.replace(" ", "")                
+                if(not re.match(r"[0-9]$",numericalToken[len(numericalToken)-1]) and numericalToken[len(numericalToken)-1]!='.'):                    
+                    charAtEndOfLiteral=self.checkForSymbols(numericalToken[len(numericalToken)-1])
+                    numericalToken = numericalToken[:len(numericalToken)-1]
+                    self.current -=1
+
+                if(numericalToken[len(numericalToken)-1] == '.'):
+                    self.increase()
                     fpToken=numericalToken
                     fpToken+=self.currentChar
+                    print(fpToken)
                     while(re.match(r"[-+][0-9]+.[0-9]+$",fpToken)):
                         self.increase()
                         fpToken += self.currentChar
+                    fpToken=fpToken.replace(" ", "")                
+                    if(not re.match(r"[0-9]$",fpToken[len(fpToken)-1])):                    
+                        charAtEndOfLiteral=self.checkForSymbols(fpToken[len(fpToken)-1])
+                        fpToken = fpToken[:len(fpToken)-1]
+                        self.current -=1
                     obj['class_part']="FP_const"
                     obj['value_part']=fpToken
                     obj['line#']=line_Number
@@ -285,8 +328,10 @@ class Tokenizer:
                     obj['class_part']="int_const"
                     obj['value_part']=numericalToken
                     obj['line#']=line_Number
-                self.tokens.append(obj)#numericalToken[:len(numericalToken)-1]
+                self.tokens.append(obj)
+                self.increase()
                 continue
+
             elif(self.currentChar in '+-' and self.nextChar=="."):
                 fpToken=self.currentChar
                 self.increase()
@@ -297,7 +342,8 @@ class Tokenizer:
                 obj['class_part']="FP_const"
                 obj['value_part']=fpToken
                 obj['line#']=line_Number
-                self.tokens.append(obj)#numericalToken[:len(numericalToken)-1]
+                self.tokens.append(obj)
+                self.increase()
                 continue
             elif(self.currentChar in "+-"):
                 obj['class_part']="PM"

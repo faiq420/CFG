@@ -5,12 +5,13 @@ import re as reg
 
 def tokenize(program):
     tokens = reg.findall(
-        r'true|false|[a-zA-Z_][a-zA-Z0-9_]*|[a-zA-Z]+|[0-9]+|[+-]*?[0-9]+.[0-9]+|<=|>=|==|!=|".*"|;|\S', program)
+        r'true|false|[a-zA-Z_][a-zA-Z0-9_]*|[a-zA-Z]+|[0-9]+|[+-?][0-9]+.[0-9]+|<=|>=|==|!=|".*"|;|\S', program)
     print(tokens,len(tokens))
     return tokens
 
 # Parser implementation
 DATATYPES = ["num", "string", "bool","fp"]
+BOOLEAN=[True,False]
 OPERATORS = ['==','!=','<=','>=','<','>']
 TEMPVAL = {}
 
@@ -24,7 +25,7 @@ class Parser:
     def increase(self):
         self.token_index += 1
         if self.token_index < len(self.tokens):
-            self.current_token = self.tokens[self.token_index]
+            self.current_token = self.tokens[self.token_index].get("value_part")
         else:
             self.current_token = None
 
@@ -193,20 +194,35 @@ class Parser:
         return NewToken
 
     def checkUntilCondition(self):
-        cond = self.current_token
-        self.conditionValue()
-        self.increase()
-        if(self.current_token in OPERATORS):
+        if(self.current_token != "True" and self.current_token != 1 and self.current_token != "not"):
+            print(self.current_token,198)
+            cond = self.current_token
+            self.conditionValue()
+            self.increase()
+            if(self.current_token in OPERATORS):
+                cond += self.current_token
+                self.increase()
+            else:
+                raise SyntaxError()
             cond += self.current_token
             self.increase()
-        else:
-            raise SyntaxError()
-        cond += self.current_token
-        self.increase()
-        cond += self.current_token
-        self.increase()
-        if(reg.match(r"[a-zA-Z]+<|>|<=|>=|==|!=[0-9]+[)]$",cond) is None):
-            raise SyntaxError("Wrong Condition")
+            cond += self.current_token
+            self.increase()
+            if(reg.match(r"[a-zA-Z]+<|>|<=|>=|==|!=[0-9]+[)]$",cond) is None):
+                raise SyntaxError("Wrong Condition")
+        elif(self.current_token == "True" or self.current_token == 1):
+            cond = self.current_token
+            self.increase()
+            cond += self.current_token
+            self.increase()
+        elif(self.current_token == "not"):
+            cond = self.current_token
+            self.increase()
+            cond += self.current_token
+            self.increase()
+            cond += self.current_token
+            self.increase()
+
 
     def declaration(self):
         Type = None
@@ -239,7 +255,7 @@ class Parser:
                     elif self.current_token == '=':
                         self.increase()
                         if (Type == "bool"):
-                            if(reg.match(r'true|false',self.current_token) is None):
+                            if(reg.match(r'True|False',self.current_token) is None):
                                 raise ValueError(f"Invalid value for type {Type}")
                         if (Type == "num"):
                             if(reg.match(r'[0-9]+',self.current_token) is None):
@@ -247,7 +263,7 @@ class Parser:
                             else:
                                 TEMPVAL[key]=self.current_token
                         if (Type == "fp"):
-                            if(reg.match(r'[+-]*?[0-9]+.[0-9]+',self.current_token) is None):
+                            if(reg.match(r'^[-+]?\d+(\.\d+)?([eE][-+]?\d+)?$',self.current_token) is None):
                                 raise ValueError(f"Invalid value for type {Type}")
                         if (Type == "string"):
                             if(reg.match(r'".*"',self.current_token) is None):
