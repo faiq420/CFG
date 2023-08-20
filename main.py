@@ -12,31 +12,27 @@ result = parser.parse()
 
 
 # Usage example
+# fp c=+077777.88;
+# fp a=78.9;
 # num x,num y,num z  = 0;
-# bool variable = false;
-# fp x = abc;
-# string variable = testing;
+# #fp x = abc;#
 # num x;
-# random variable = testing;
-# string % = abc;
-# repeat(num i=0;i<=10;i=i+2){
-#     string text = "10";
-#     repeat(num j=0;j<=10;j=j+2){
-#         num random = 10;
-#     }   
-# }
-# until ( x < 9 ) {
-#     num random = 5;
-# }
-# func add(num a){
-#     num c = 5;
-# }
+# #string % = abc;#
+# string text = "10";
 # func add(num a,num b){
 #   num c = 5;
-#     repeat(num j=0;j<=10;j=j+2){
-#         num random = 10;
-#         until ( x <= 9 ) {
-#             bool a = true;
+#     repeat(num j = 0 ; j <= 10 ;j=j + 2){
+#         num random = 0;
+#         fp algebra =-5.5;
+#         until ( random <= 9 ) {
+#             bool a = True;
 #         }
 #     } 
-# }  
+# } 
+
+# num random = 5;
+# num sec=6;
+# num triple=7;
+# until(random<9 & sec!=9 & triple!=5){
+#     bool a = True;
+# }

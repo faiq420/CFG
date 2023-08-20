@@ -274,7 +274,6 @@ class Tokenizer:
                     self.increase()
                     fpToken=numericalToken
                     fpToken+=self.currentChar
-                    print(fpToken)
                     while(re.match(r"[0-9]+.[0-9]+$",fpToken)):
                         self.increase()
                         fpToken += self.currentChar
@@ -312,7 +311,6 @@ class Tokenizer:
                     self.increase()
                     fpToken=numericalToken
                     fpToken+=self.currentChar
-                    print(fpToken)
                     while(re.match(r"[-+][0-9]+.[0-9]+$",fpToken)):
                         self.increase()
                         fpToken += self.currentChar
@@ -433,9 +431,17 @@ class Tokenizer:
                 continue
 
             if(self.currentChar=='='):
-                obj['class_part']="Assignment"
-                obj['value_part']=self.currentChar
-                obj['line#']=line_Number
+                symbolToken=self.currentChar
+                if(self.nextChar=="="):
+                    self.increase()
+                    symbolToken+=self.currentChar
+                    obj['class_part']="RO"
+                    obj['value_part']=symbolToken
+                    obj['line#']=line_Number
+                else:
+                    obj['class_part']="Assignment"
+                    obj['value_part']=self.currentChar
+                    obj['line#']=line_Number
                 self.tokens.append(obj)
                 self.increase()
                 continue

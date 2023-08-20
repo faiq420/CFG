@@ -11,14 +11,17 @@ def tokenize(program):
 
 # Parser implementation
 DATATYPES = ["num", "string", "bool","fp"]
+KEYWORDS = ["func","repeat","until",'when','either','otherwise','this','void','new','main','return','private','public']
 BOOLEAN=[True,False]
-OPERATORS = ['==','!=','<=','>=','<','>']
+OPERATORS = ['==','!=','<=','>=','>','<']
+LOGICAL_OPERATORS = ['&','|']
 TEMPVAL = {}
 
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.current_token = None
+        # self.next_token;
         self.token_index = -1
         self.increase()
 
@@ -26,6 +29,7 @@ class Parser:
         self.token_index += 1
         if self.token_index < len(self.tokens):
             self.current_token = self.tokens[self.token_index].get("value_part")
+            # self.next_token = self.tokens[self.token_index+1].get("value_part")
         else:
             self.current_token = None
 
@@ -49,10 +53,66 @@ class Parser:
             elif (self.current_token == 'func'):
                 self.increase()
                 self.parseFunction()
+            elif (self.current_token == 'when'):
+                self.increase()
+                self.parseConditions()
             elif self.current_token=='}':
                 break  
             else:
                 raise SyntaxError(f"Invalid DataType {self.current_token}")
+
+    def parseConditions(self):
+        Terminate = False
+        while (not Terminate):
+            if self.current_token == "(":
+                self.increase()
+                self.checkConditions()          
+                if (self.current_token == '{'):
+                    self.increase()
+                    self.body() 
+                    self.increase()
+                    while(self.current_token == 'either'):
+                        self.increase()
+                        self.parseEitherCondition()
+                    if(self.current_token == 'otherwise'):
+                        self.increase()
+                        self.parseOtherwiseCondition()
+                    Terminate=True
+                else:
+                    raise SyntaxError("Unexpected identifier. Expected '{' ")
+            else:
+                raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
+        print("VALID WHEN CONDITION")
+
+    def parseOtherwiseCondition(self):
+        Terminate = False
+        while (not Terminate):
+            if (self.current_token == '{'):
+                    self.increase()
+                    self.body() 
+                    self.increase()
+                    Terminate=True
+            else:
+                raise SyntaxError("Unexpected identifier. Expected '{' ")
+        print("VALID OTHERWISE CONDITION")
+
+    def parseEitherCondition(self):
+        Terminate = False
+        while (not Terminate):
+            if self.current_token == "(":
+                # self.conditionValue()
+                self.increase()
+                self.checkConditions()          
+                if (self.current_token == '{'):
+                    self.increase()
+                    self.body() 
+                    self.increase()
+                    Terminate=True
+                else:
+                    raise SyntaxError("Unexpected identifier. Expected '{' ")
+            else:
+                raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
+        print("VALID EITHER CONDITION")
 
     def parseFunction(self):
         Terminate = False
@@ -102,7 +162,7 @@ class Parser:
             if self.current_token == "(":
                 # self.conditionValue()
                 self.increase()
-                self.checkUntilCondition()          
+                self.checkConditions()          
                 if (self.current_token == '{'):
                     self.increase()
                     self.body() 
@@ -193,9 +253,23 @@ class Parser:
         self.increase()
         return NewToken
 
-    def checkUntilCondition(self):
+    def checkMultiConditions(self):
+        condition=self.current_token
+        self.increase()
+        condition+=self.current_token
+        self.conditionValue()
+        self.increase()
+        if(self.current_token in OPERATORS):
+            condition += self.current_token
+            self.increase()
+        else:
+            raise SyntaxError()
+        condition += self.current_token
+        self.increase()    
+        print(condition)
+
+    def checkConditions(self):
         if(self.current_token != "True" and self.current_token != 1 and self.current_token != "not"):
-            print(self.current_token,198)
             cond = self.current_token
             self.conditionValue()
             self.increase()
@@ -206,15 +280,19 @@ class Parser:
                 raise SyntaxError()
             cond += self.current_token
             self.increase()
+            while(self.current_token in LOGICAL_OPERATORS is not None):
+                self.checkMultiConditions()
             cond += self.current_token
             self.increase()
             if(reg.match(r"[a-zA-Z]+<|>|<=|>=|==|!=[0-9]+[)]$",cond) is None):
                 raise SyntaxError("Wrong Condition")
+
         elif(self.current_token == "True" or self.current_token == 1):
             cond = self.current_token
             self.increase()
             cond += self.current_token
             self.increase()
+
         elif(self.current_token == "not"):
             cond = self.current_token
             self.increase()

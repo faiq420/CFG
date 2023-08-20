@@ -1,2 +1,4 @@
-fp c=+077777.88;
-fp a=78.9;
+num x = 5;
+when(x<10){
+    string a ="greater than ten" ;
+}
