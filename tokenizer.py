@@ -1,7 +1,7 @@
 import re
 
 #classes
-DATATYPES = ["num", "string", "bool","fp"]
+DATATYPES = ["num", "string", "bool","fp","char"]
 ARRAY=["[","]"]
 BOOLEAN=["True","False"]
 RELATIONAL_OPERATORS = ['==','!=','<=','>=','<','>']
@@ -35,6 +35,8 @@ class Tokenizer:
         self.class_part=''
         self.value_part=''
         self.line_number=''
+        global line_Number
+
         charAtEndOfLiteral={}
 
     def increase(self):
@@ -87,11 +89,11 @@ class Tokenizer:
             return obj
             
         if(token == '.'):
-            obj['class_part']="."
+            obj['class_part']="ref"
             obj['value_part']=token
             obj['line#']=line_Number
             return obj
-            
+        
 
     def tokenize(self):
         global line_Number
@@ -108,13 +110,39 @@ class Tokenizer:
                 continue
 
                 #for comments
-            if(self.currentChar=='#'):
+            if(self.currentChar=='/'and self.nextChar=="*"):
                 self.increase()
-                while(self.currentChar!='#'):
+                self.increase()
+                while(self.currentChar!='*' and self.nextChar!='/'):
+                    line=0
+                    # global line_Number
+                    if(self.currentChar == '\n'):
+                        line+=1
+                        self.increase()
+                        continue
+                    line_Number +=line
+                    self.increase()
+                self.increase()
+                self.increase()
+                continue
+            
+            if(self.currentChar=='#'):
+                while(not self.currentChar=='\n'):
                     self.increase()
                 self.increase()
                 continue
 
+            if(self.currentChar=='-' and self.nextChar=='>'):
+                refToken=self.currentChar
+                self.increase()
+                refToken+=self.currentChar
+                self.increase()
+                obj['class_part']="ref"
+                obj['value_part']=refToken
+                obj['line#']=line_Number
+                self.tokens.append(obj)
+                self.increase()
+                continue
 
             #check for keywords
             
@@ -125,9 +153,23 @@ class Tokenizer:
                     keyToken += self.currentChar
                 keyToken=keyToken.replace(" ", "")
                 if(not re.match(r"[a-zA-Z]$",keyToken[len(keyToken)-1])):
-                    charAtEndOfLiteral=self.checkForSymbols(keyToken[len(keyToken)-1])             
-                    keyToken = keyToken[:len(keyToken)-1]
-                    self.current -=1
+                    # if(keyToken[len(keyToken)-1] == '-' and not self.nextChar=='>'):
+                        charAtEndOfLiteral=self.checkForSymbols(keyToken[len(keyToken)-1])             
+                        keyToken = keyToken[:len(keyToken)-1]
+                        self.current -=1
+                    # else:
+                    #     if(keyToken[len(keyToken)-1]=='-' and self.nextChar=='>'):
+                    #         keyToken = keyToken[:len(keyToken)-1]
+                    #         refToken=keyToken[len(keyToken)-1]
+                    #         self.increase()
+                    #         refToken+=self.currentChar
+                    #         self.increase()
+                    #         obj['class_part']="ref"
+                    #         obj['value_part']=refToken
+                    #         obj['line#']=line_Number
+                    #         self.tokens.append(obj)
+                    #         self.current -=1
+                    #         self.increase()
                 contains_digits = any(char.isdigit() for char in keyToken)
                 contains_underscore = '_' in keyToken
                 if contains_digits or contains_underscore:
@@ -203,6 +245,55 @@ class Tokenizer:
                         self.tokens.append(obj)
                         self.increase()
                         continue
+                    elif(keyToken == "main"):
+                        obj['class_part']="main"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken == "new"):
+                        obj['class_part']="new"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken == "this"):
+                        obj['class_part']="this"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken == "class"):
+                        obj['class_part']="class"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken == "extends"):
+                        obj['class_part']="extends"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken == "struct"):
+                        obj['class_part']="struct"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken in ACCESS_MODIFIERS):
+                        obj['class_part']="Access_Modifier"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
                     elif(keyToken in BOOLEAN):
                         obj['class_part']="bool_const"
                         obj['value_part']=keyToken
@@ -243,8 +334,21 @@ class Tokenizer:
             if (self.currentChar == "'"):
                 charToken = self.currentChar
                 self.increase()
+                if(self.nextChar == '\\'):
+                    print(self.currentChar)
+                    charToken += self.currentChar
+                    self.increase()    
+                    print(self.currentChar)
                 charToken += self.currentChar
                 self.increase()
+                if(self.nextChar != "'"):
+                    print(len(charToken),'sa')
+                    obj['class_part']="invalid_token"
+                    obj['value_part']=charToken
+                    obj['line#']=line_Number
+                    self.tokens.append(obj)
+                    self.increase()
+                    continue
                 charToken += self.currentChar
                 self.increase()
                 obj['class_part']="char_const"
@@ -330,6 +434,28 @@ class Tokenizer:
                 self.increase()
                 continue
 
+            elif(self.currentChar == '.' and re.match(r"[0-9]$",self.nextChar)):
+                fpToken=self.currentChar
+                self.increase()
+                fpToken+=self.currentChar
+                while(re.match(r".[0-9]+$",fpToken)):
+                    self.increase()
+                    fpToken += self.currentChar
+                if(not re.match(r"[0-9]$",fpToken[len(fpToken)-1])):
+                    obj['class_part']="invalid_token"
+                    obj['value_part']=fpToken
+                    obj['line#']=line_Number
+                    self.tokens.append(obj)
+                    self.increase()
+                    continue
+                else:
+                    obj['class_part']="FP_const"
+                    obj['value_part']=fpToken
+                    obj['line#']=line_Number
+                    self.tokens.append(obj)
+                    self.increase()
+                    continue
+
             elif(self.currentChar in '+-' and self.nextChar=="."):
                 fpToken=self.currentChar
                 self.increase()
@@ -408,6 +534,10 @@ class Tokenizer:
                 self.tokens.append(obj)
                 self.increase()
                 continue
+
+            
+
+                
                 
             if(self.currentChar=='>' or self.currentChar=='<' or self.currentChar=='!'):
                 symbolToken=self.currentChar

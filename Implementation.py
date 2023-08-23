@@ -13,9 +13,11 @@ def tokenize(program):
 DATATYPES = ["num", "string", "bool","fp"]
 KEYWORDS = ["func","repeat","until",'when','either','otherwise','this','void','new','main','return','private','public']
 BOOLEAN=[True,False]
+RETURN_TYPES=["void","num"]
 OPERATORS = ['==','!=','<=','>=','>','<']
 LOGICAL_OPERATORS = ['&','|']
 TEMPVAL = {}
+CLASSES=[]
 
 class Parser:
     def __init__(self, tokens):
@@ -203,8 +205,8 @@ class Parser:
             self.parse()
 
     def validateVariableName(self):
-        if self.current_token in DATATYPES is not None:
-            raise NameError("Variable can not be named as Datatypes.")
+        if (self.current_token in DATATYPES is not None or self.current_token in KEYWORDS is not None):
+            raise NameError("Variable can not be named as Reseserved words.")
 
     def checkLoopInitialization(self):
         if(self.current_token == "num"):

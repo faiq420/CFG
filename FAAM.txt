@@ -1,4 +1,1 @@
-num x = 5;
-when(x<10){
-    string a ="greater than ten" ;
-}
+this.as;

@@ -36,3 +36,21 @@ result = parser.parse()
 # until(random<9 & sec!=9 & triple!=5){
 #     bool a = True;
 # }
+
+# num x = 5;
+# num random = 5;
+# when(x<=9 ){
+#     string t="Equals";
+#}
+# either(random<9){
+#     string z="Greater than 10";
+# }
+# either(x<9){
+#     string z="Greater than 10";
+# }
+# otherwise{
+#     string y= "Lesser Than or Equal To 10 ";
+# }
+# when(x<10){
+#     string a ="greater than ten" ;
+# }
