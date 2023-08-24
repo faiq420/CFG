@@ -1,1 +1,71 @@
-this.as;
+class MyClass {       
+  public num myNum;        
+  public string myString;  
+
+  MyClass(number,st){
+    this->myNum = number;
+    this->myString = st;
+  }
+
+  public void random(){
+    string name="ANything";
+  }
+};
+
+class ChildClass(MyClass){
+  public string OtherString;
+}
+
+class Animal {
+  publicv oid animalSound() {
+      print("The animal makes a sound");
+    }
+};
+
+class Pig extends public Animal {
+  public void animalSound() {
+      print("The pig says: wee wee");
+    }
+};
+
+class Dog extends public Animal {
+  public void animalSound() {
+      print("The dog says: bow wow");
+    }
+};
+
+main(){
+    ChildClass obj = new ChildClass();
+    obj->random();
+    print(obj->OtherString);
+    print(obj->MyString);
+
+    Animal myAnimal = new Animal();
+  Pig myPig=new Pig();
+  Dog myDog=new Dog();
+
+  myAnimal->animalSound();
+  myPig->animalSound();
+  myDog->animalSound();
+
+
+fp a=78.9;
+fp jk=.98;
+num x,num y,num z  = 0;
+#fp x = abc;#
+num x;
+#string % = abc;#
+string text = "10";
+func add(num a,num b){
+  num c = 5;
+    repeat(num j = 0 ; j <= 10 ;j=j + 2){
+        num random = 0;
+        fp algebra =-5.5;
+        until ( random <= 9 ) {
+            bool a = True;
+        }
+    } 
+} 
+
+
+}
