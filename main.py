@@ -9,6 +9,57 @@ parser = Parser(tokens)
 result = parser.parse()
  
 
+# class MyClass {       
+#   public num myNum;        
+#   public string myString;  
+
+#   MyClass(number,st){
+#     this->myNum = number;
+#     this->myString = st;
+#   }
+
+#   public void random(){
+#     string name="ANything";
+#   }
+# };
+
+# class ChildClass(MyClass){
+#   public string OtherString;
+# }
+
+# class Animal {
+#   publicv oid animalSound() {
+#       print("The animal makes a sound");
+#     }
+# };
+
+# class Pig extends public Animal {
+#   public void animalSound() {
+#       print("The pig says: wee wee");
+#     }
+# };
+
+# class Dog extends public Animal {
+#   public void animalSound() {
+#       print("The dog says: bow wow");
+#     }
+# };
+
+# main(){
+#     ChildClass obj = new ChildClass();
+#     obj->random();
+#     print(obj->OtherString);
+#     print(obj->MyString);
+
+#     Animal myAnimal = new Animal();
+#   Pig myPig=new Pig();
+#   Dog myDog=new Dog();
+
+#   myAnimal->animalSound();
+#   myPig->animalSound();
+#   myDog->animalSound();
+# }
+
 
 
 # Usage example

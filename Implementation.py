@@ -25,12 +25,14 @@ class Parser:
         self.current_token = None
         # self.next_token;
         self.token_index = -1
+        self.line_number = 1
         self.increase()
 
     def increase(self):
         self.token_index += 1
         if self.token_index < len(self.tokens):
             self.current_token = self.tokens[self.token_index].get("value_part")
+            self.line_number = self.tokens[self.token_index].get("line#")
             # self.next_token = self.tokens[self.token_index+1].get("value_part")
         else:
             self.current_token = None
@@ -41,6 +43,9 @@ class Parser:
             raise SyntaxWarning("Variable not assigned a value!")
         else:
             return TEMPVAL[self.current_token]
+        
+    def raise_error(self, message):
+        raise SyntaxError(f"{message} at line {self.line_number}")
 
     def parse(self):
         while (self.current_token):
@@ -58,10 +63,42 @@ class Parser:
             elif (self.current_token == 'when'):
                 self.increase()
                 self.parseConditions()
+            elif self.current_token == 'class':
+                self.increase()
+                self.parseClass()
+            elif self.current_token == 'return':
+                self.increase();
+                self.parseReturnSt()
             elif self.current_token=='}':
                 break  
             else:
-                raise SyntaxError(f"Invalid DataType {self.current_token}")
+                self.raise_error(f"Invalid DataType {self.current_token}")
+
+    def parseReturnSt(self):
+        self.increase()
+        while(self.current_token!=';'):
+            self.increase()
+        self.increase()
+        print("VALID RETURN STATEMENT")
+
+    def parseClass(self):
+        # Parse class definition
+        class_name = self.current_token
+        self.increase()
+        curr_tok=self.current_token
+        self.increase()
+        curr_tok+=self.current_token
+        self.increase()
+        if self.current_token == '{':
+            self.increase()
+            self.body()
+            if self.current_token == '}':
+                self.increase()
+            else:
+                self.raise_error("Expected '}'")
+        else:
+            self.raise_error("Expected '{'")
+        print("VALID CLASS PARSING")
 
     def parseConditions(self):
         Terminate = False
@@ -81,9 +118,9 @@ class Parser:
                         self.parseOtherwiseCondition()
                     Terminate=True
                 else:
-                    raise SyntaxError("Unexpected identifier. Expected '{' ")
+                    self.raise_error("Unexpected identifier. Expected '{' ")
             else:
-                raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
+                self.raise_error(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
         print("VALID WHEN CONDITION")
 
     def parseOtherwiseCondition(self):
@@ -95,7 +132,7 @@ class Parser:
                     self.increase()
                     Terminate=True
             else:
-                raise SyntaxError("Unexpected identifier. Expected '{' ")
+                self.raise_error("Unexpected identifier. Expected '{' ")
         print("VALID OTHERWISE CONDITION")
 
     def parseEitherCondition(self):
@@ -111,9 +148,9 @@ class Parser:
                     self.increase()
                     Terminate=True
                 else:
-                    raise SyntaxError("Unexpected identifier. Expected '{' ")
+                    self.raise_error("Unexpected identifier. Expected '{' ")
             else:
-                raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
+                self.raise_error(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
         print("VALID EITHER CONDITION")
 
     def parseFunction(self):
@@ -121,7 +158,10 @@ class Parser:
         while (not Terminate):
             newToken = self.current_token
             if(reg.match(r'[a-zA-Z]+',newToken)):
-                self.increase()
+                # self.increase()
+                if self.current_token =='void' or self.current_token in DATATYPES:
+                    self.increase()
+                    self.increase()
                 if self.current_token == "(":
                     self.increase()
                     self.checkFuncParameters()
@@ -132,11 +172,11 @@ class Parser:
                         self.increase()
                         Terminate=True
                     else:
-                        raise SyntaxError("Unexpected identifier. Expected '{' ")
+                        self.raise_error("Unexpected identifier. Expected '{' ")
                 else:
-                    raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
+                    self.raise_error(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
             else:
-                raise SyntaxError("Invalid Function Name")
+                self.raise_error("Invalid Function Name")
         print("VALID FUNCTION")
 
     def checkFuncParameters(self):
@@ -154,9 +194,9 @@ class Parser:
                         self.increase()
                         continue
                 else:
-                    raise SyntaxError("Invalid Parameter")
+                    self.raise_error("Invalid Parameter")
             else:
-                raise SyntaxError("Invalid Datatype")
+                self.raise_error("Invalid Datatype")
 
     def parseUntilLoop(self):
         Terminate = False
@@ -171,9 +211,9 @@ class Parser:
                     self.increase()
                     Terminate=True
                 else:
-                    raise SyntaxError("Unexpected identifier. Expected '{' ")
+                    self.raise_error("Unexpected identifier. Expected '{' ")
             else:
-                raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
+                self.raise_error(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
         print("VALID UNTIL LOOP")
                 
 
@@ -193,11 +233,11 @@ class Parser:
                         self.increase()
                         Terminate=True
                     else:
-                        raise SyntaxError("Unexpected identifier  Expected '{' ")
+                        self.raise_error("Unexpected identifier  Expected '{' ")
                 else:
-                    raise SyntaxError("Unexpected identifier")
+                    self.raise_error("Unexpected identifier")
             else:
-                raise SyntaxError(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
+                self.raise_error(f"Invalid Identifier Expected '(' but given '{self.current_token}'")
         print("VALID REPEAT LOOP")
 
     def body(self):
@@ -221,9 +261,9 @@ class Parser:
             self.increase()
             local += self.current_token
             if(reg.match(r"num\s*[a-zA-Z]=[0-9]+;",local) is None):
-                raise SyntaxError("Invalid Identifier")
+                self.raise_error("Invalid Identifier")
         else:
-            raise SyntaxError("Invalid Identifier")
+            self.raise_error("Invalid Identifier")
 
     def checkRepeatCondition(self):
         cond = self.current_token
@@ -232,13 +272,13 @@ class Parser:
             cond += self.current_token
             self.increase()
         else:
-            raise SyntaxError()
+            self.raise_error()
         cond += self.current_token
         self.increase()
         cond += self.current_token
         self.increase()
         if(reg.match(r"[a-zA-Z]+<|>|<=|>=|==|!=[0-9]+;$",cond) is None):
-            raise SyntaxError("Invalid Condition")
+            self.raise_error("Invalid Condition")
         
     def checkINCDEC(self):
         NewToken = self.current_token
@@ -265,7 +305,7 @@ class Parser:
             condition += self.current_token
             self.increase()
         else:
-            raise SyntaxError()
+            self.raise_error()
         condition += self.current_token
         self.increase()    
         print(condition)
@@ -279,7 +319,7 @@ class Parser:
                 cond += self.current_token
                 self.increase()
             else:
-                raise SyntaxError()
+                self.raise_error()
             cond += self.current_token
             self.increase()
             while(self.current_token in LOGICAL_OPERATORS is not None):
@@ -287,7 +327,7 @@ class Parser:
             cond += self.current_token
             self.increase()
             if(reg.match(r"[a-zA-Z]+<|>|<=|>=|==|!=[0-9]+[)]$",cond) is None):
-                raise SyntaxError("Wrong Condition")
+                self.raise_error("Wrong Condition")
 
         elif(self.current_token == "True" or self.current_token == 1):
             cond = self.current_token
@@ -314,7 +354,7 @@ class Parser:
         while (not Terminate):
             if(self.current_token in DATATYPES):
                 if(re and self.current_token != Type):
-                    raise SyntaxError("Mismatched Data types")
+                    self.raise_error("Mismatched Data types")
                 self.increase()
                 if Type == 'num':
                     key = self.current_token
@@ -324,7 +364,7 @@ class Parser:
                     self.validateVariableName()
                     self.increase()
                     # if(Type != 'repeat' and self.tokens[len(self.tokens)-1] != ';'):
-                    #     raise SyntaxError("Termination not detected")
+                    #     self.raise_error("Termination not detected")
                     if(self.current_token == ';'):
                             Terminate = True
                             self.increase()
@@ -353,7 +393,7 @@ class Parser:
                             Terminate = True
                             self.increase()
                     else:
-                        raise SyntaxError("Invalid Identifier")
+                        self.raise_error("Invalid Identifier")
                 else:
-                    raise SyntaxError("Variable naming violation")
+                    self.raise_error("Variable naming violation")
         print("VALID")
