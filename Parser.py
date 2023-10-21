@@ -1,13 +1,18 @@
 DATATYPES = ["num", "string", "bool","fp","char"]
 CONST=['int_const','fp_const','str_const','bool_const','char_const']
-KEYWORDS = ["func","repeat","until",'when','either','otherwise','this','void','new','main','return','private','public']
-BOOLEAN=[True,False]
+KEYWORDS = ["func","repeat","until",'when','either','otherwise','this','void','new','main','return','private','public','break','continue','class','try','catch','enum']
+BOOLEAN=['True','False']
 RETURN_TYPES=["void","num"]
-OPERATORS = ['==','!=','<=','>=','>','<']
+RELATIONAL_OPERATORS = ['==','!=','<=','>=','>','<']
 LOGICAL_OPERATORS = ['&&','||']
 TEMPVAL = {}
 CLASSES=[]
 DEFS=["num", "string", "bool","fp","char",'func',"enum","class"]
+ACCESS_MODIFIERS=['private','public']
+PM = ['+','-']
+MD=['*','/']
+LOGICAL_OPERATORS = ['&&','||']
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
@@ -139,4 +144,51 @@ class Parser:
             self.decl()
         else:
             self.raise_error(f"Unexpected token {self.value_part}")
-    # def MST(self):
+
+    def MST(self):
+        if(self.value_part in KEYWORDS or self.class_part=='Identifier'):
+            self.SST()
+            self.increase()
+            self.MST()
+        else:
+            pass
+
+    def SST(self):
+        if(self.value_part=='func'):
+            self.fn_def()
+            self.increase()
+        elif(self.value_part=='when'):
+            self.if_else()
+            self.increase()
+        elif(self.value_part=='until'):
+            self.while_st()
+            self.increase()
+        elif(self.value_part=='repeat'):
+            self.for_st()
+            self.increase()
+        elif(self.class_part=='jump'):
+            self.br_cont()
+            self.increase()
+        elif(self.value_part=='return'):
+            self.ret()
+            self.increase()
+        elif(self.value_part=='class'):
+            self.class_dec()
+            self.increase()
+        elif(self.value_part=='this'):
+            self.this_st()
+            self.increase()
+        elif(self.value_part=='try'):
+            self.try_catch()
+            self.increase()
+        elif(self.value_part=='enum'):
+            self.enum_st()
+            self.increase()
+        elif(self.value_part in ACCESS_MODIFIERS):
+            self.attribute_st()
+            self.increase()
+        elif(self.class_part=="Identifier"):
+            self.ids()
+            self.increase()
+        else:
+            pass

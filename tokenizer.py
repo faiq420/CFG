@@ -5,7 +5,7 @@ DATATYPES = ["num", "string", "bool","fp","char"]
 ARRAY=["[","]"]
 BOOLEAN=["True","False"]
 RELATIONAL_OPERATORS = ['==','!=','<=','>=','<','>']
-LOGICAL_OPERATORS = ['&','|']
+LOGICAL_OPERATORS = ['&&','||']
 ASSIGNMENT='='
 PM = ['+','-']
 MD=['*','/']
@@ -184,6 +184,13 @@ class Tokenizer:
                 else:
                     if(keyToken in DATATYPES):
                         obj['class_part']="DataType"
+                        obj['value_part']=keyToken
+                        obj['line#']=line_Number
+                        self.tokens.append(obj)
+                        self.increase()
+                        continue
+                    elif(keyToken =="break" or keyToken=="continue"):
+                        obj['class_part']="jump"
                         obj['value_part']=keyToken
                         obj['line#']=line_Number
                         self.tokens.append(obj)
