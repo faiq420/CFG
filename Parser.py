@@ -1,4 +1,5 @@
 DATATYPES = ["num", "string", "bool","fp","char"]
+CONST=['int_const','fp_const','str_const','bool_const','char_const']
 KEYWORDS = ["func","repeat","until",'when','either','otherwise','this','void','new','main','return','private','public']
 BOOLEAN=[True,False]
 RETURN_TYPES=["void","num"]
@@ -46,7 +47,6 @@ class Parser:
         if(self.value_part=='('):
             self.increase()
             self.args()
-            self.increase()
             if(self.value_part==')'):
                 self.increase()
                 if(self.value_part=="{"):
@@ -67,15 +67,33 @@ class Parser:
 
     def defs(self):
         if(self.value_part in DATATYPES):
+            self.increase()
             self.decl()
         elif(self.value_part=='func'):
+            self.increase()
             self.func_def()
         elif(self.value_part=='class'):
+            self.increase()
             self.class_dec()
         elif(self.value=='enum'):
+            self.increase()
             self.enum_def()
         else:
             pass
+
+    def args(self):
+        if(self.class_part=='Identifier' or self.class_part in CONST):
+            self.increase()
+            if(self.value_part==','):
+                self.increase()
+                self.mul_args()
+            else:
+                pass
+        elif(self.next_token==')'):
+            self.increase()
+            pass
+        else:
+            self.raise_error(f"Invalid argument passed-> {self.value_part}")
     
     def decl(self):
 

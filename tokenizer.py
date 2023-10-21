@@ -553,6 +553,9 @@ class Tokenizer:
 
             if(self.currentChar=='&' or self.currentChar=='|'):
                 symbolToken=self.currentChar
+                self.increase()
+                if(self.currentChar==symbolToken):
+                    symbolToken+=self.currentChar
                 obj['class_part']="LO"
                 obj['value_part']=symbolToken
                 obj['line#']=line_Number
