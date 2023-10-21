@@ -31,6 +31,10 @@ class Parser:
     def raise_error(self, message):
         raise SyntaxError(f"{message} at line {self.line_number}")
     
+    def validateVariableName(self):
+        if (self.value_part in DATATYPES is not None or self.value_part in KEYWORDS is not None):
+            raise NameError("Variable can not be named as Reseserved words.")
+
     def Start(self):
         if(self.value_part in DEFS):
             self.increase()
@@ -95,7 +99,44 @@ class Parser:
         else:
             self.raise_error(f"Invalid argument passed-> {self.value_part}")
     
-    def decl(self):
+    def mul_args(self):
+        if(self.class_part=='Identifier' or self.class_part in CONST):
+            self.increase()
+            if(self.value_part==','):
+                self.increase()
+                self.mul_args()
+            else:
+                pass
+        elif(self.next_token==')'):
+            self.increase()
+            pass
+        else:
+            self.raise_error(f"Invalid argument passed-> {self.value_part}")
 
+    def decl(self):
+        if(self.class_part=='Identifier'):
+            self.increase()
+            self.init()
+            self.increase()
+            self.mul_decl()
+        else:
+            self.validateVariableName()
     
+    def init(self):
+        if(self.value_part=='='):
+            self.increase()
+            self.S()
+            pass
+        else:
+            self.raise_error(f"Expected =  instead got {self.value_part}")
+
+    def mul_decl(self):
+        if(self.value_part==';'):
+            self.increase()
+            pass
+        elif(self.value_part==','):
+            self.increase()
+            self.decl()
+        else:
+            self.raise_error(f"Unexpected token {self.value_part}")
     # def MST(self):
