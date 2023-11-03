@@ -1,1 +1,5 @@
-num a=5+3 ;
+void main(){
+    try{
+        break;
+    }catch(e){}
+}

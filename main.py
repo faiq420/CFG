@@ -1,4 +1,4 @@
-from Implementation import Parser,tokenize
+from Parser import Parser
 from tokenizer import Tokenizer
 
 program = open('./FAAM.txt','r').read()
@@ -6,7 +6,7 @@ program = open('./FAAM.txt','r').read()
 lexer = Tokenizer(program)
 tokens = lexer.tokenize()
 parser = Parser(tokens)
-result = parser.parse()
+result = parser.Start()
  
 
 # class MyClass {       

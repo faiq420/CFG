@@ -1,27 +1,28 @@
-DATATYPES = ["num", "string", "bool","fp","char"]
-CONST=['int_const','fp_const','str_const','bool_const','char_const']
-KEYWORDS = ["func","repeat","until",'when','either','otherwise','this','void','new','main','return','private','public','break','continue','class','try','catch','enum']
-BOOLEAN=['True','False']
-RETURN_TYPES=["void","num"]
-RELATIONAL_OPERATORS = ['==','!=','<=','>=','>','<']
-LOGICAL_OPERATORS = ['&&','||']
+DATATYPES = ["num", "string", "bool", "fp", "char"]
+CONST = ['int_const', 'fp_const', 'str_const', 'bool_const', 'char_const']
+KEYWORDS = ["func", "repeat", "until", 'when', 'either', 'otherwise', 'this', 'void', 'new',
+            'main', 'return', 'private', 'public', 'break', 'continue', 'class', 'try', 'catch', 'enum']
+BOOLEAN = ['True', 'False']
+RETURN_TYPES = ["void", "num"]
+RELATIONAL_OPERATORS = ['==', '!=', '<=', '>=', '>', '<']
+LOGICAL_OPERATORS = ['&&', '||']
+DEFS = ["num", "string", "bool", "fp", "char", 'func', "enum", "class"]
+ACCESS_MODIFIERS = ['private', 'public']
+PM = ['+', '-']
+MD = ['*', '/']
+LOGICAL_OPERATORS = ['&&', '||']
 TEMPVAL = {}
-CLASSES=[]
-DEFS=["num", "string", "bool","fp","char",'func',"enum","class"]
-ACCESS_MODIFIERS=['private','public']
-PM = ['+','-']
-MD=['*','/']
-LOGICAL_OPERATORS = ['&&','||']
+CLASSES = []
+
 
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
-        self.value_part = None
+        self.value_part = self.tokens[0].get("value_part")
         self.line_number = 1
-        self.class_part=None
-        self.next_token
-        self.token_index = -1
-        self.increase()
+        self.class_part = self.tokens[0].get("value_part")
+        self.token_index = 0
+        self.next_token=self.tokens[self.token_index+1].get("value_part")
 
     def increase(self):
         self.token_index += 1
@@ -29,166 +30,716 @@ class Parser:
             self.class_part = self.tokens[self.token_index].get("class_part")
             self.value_part = self.tokens[self.token_index].get("value_part")
             self.line_number = self.tokens[self.token_index].get("line#")
-            self.next_token = self.tokens[self.token_index+1].get("value_part")
+            if self.token_index < len(self.tokens)-2:
+
+                self.next_token = self.tokens[self.token_index+1].get("value_part")
+            else:
+                self.next_token= None
         else:
             self.value_part = None
-    
+
     def raise_error(self, message):
         raise SyntaxError(f"{message} at line {self.line_number}")
-    
+
     def validateVariableName(self):
         if (self.value_part in DATATYPES is not None or self.value_part in KEYWORDS is not None):
             raise NameError("Variable can not be named as Reseserved words.")
 
+    def openingBracketErr(self):
+        self.raise_error(f"Expected ( but instead got {self.value_part}")
+
+    def closingBracketErr(self):
+        self.raise_error(f"Expected ) but instead got {self.value_part}")
+
+    def openingBraceErr(self):
+        self.raise_error(
+            f"Expected opening brace but instead got {self.value_part}")
+
+    def closingBraceErr(self):
+        self.raise_error(
+            f"Expected closing brace but instead got {self.value_part}")
+
+    def invalidArgumentErr(self):
+        self.raise_error(f"Invalid argument passed-> {self.value_part}")
+
+    def DataTypeErr(self):
+        self.raise_error(
+            f"Expected DATATYPE but instead got {self.value_part}"
+        )
+
+    def SemiColonErr(self):
+        self.raise_error(
+            f"Expected semicolon but instead got {self.value_part}"
+        )
+
+    def colonErr(self):
+        self.raise_error(
+            f"Expected colon but instead got {self.value_part}"
+        )
+
+    def commaErr(self):
+        self.raise_error(
+            f"Expected comma but instead got {self.value_part}"
+        )
+
+    def EqualsToErr(self):
+        self.raise_error(
+            f"Expected Assignment Operator instead got {self.value_part}")
+
+    def invalid_token(self):
+        self.raise_error(f"Invalid token -> {self.value_part}")
+
     def Start(self):
-        if(self.value_part in DEFS):
+        if (self.value_part in DEFS):
             self.increase()
             self.defs()
-        elif(self.value_part=='void'):
+        elif (self.value_part == 'void'):
             self.increase()
-            if(self.value_part=='main'):
+            if (self.value_part == 'main'):
                 self.increase()
                 self.main_func()
             else:
-                self.raise_error(f'Main function is expected instead got {self.value_part}')
+                self.raise_error(
+                    f'Main function is expected instead got {self.value_part}')
 
     def main_func(self):
-        if(self.value_part=='('):
+        if (self.value_part == '('):
             self.increase()
             self.args()
-            if(self.value_part==')'):
+            if (self.value_part == ')'):
                 self.increase()
-                if(self.value_part=="{"):
+                if (self.value_part == "{"):
                     self.increase()
                     self.MST()
-                    self.increase()
-                    if(self.value_part=="}"):
+                    if (self.value_part == "}"):
                         self.increase()
                         self.defs()
                     else:
-                        self.raise_error(f"Expected Closing Brace instead got {self.value_part}")
+                        self.closingBraceErr()
                 else:
-                    self.raise_error(f"Expected Opening Brace instead got {self.value_part}")
+                    self.openingBraceErr()
             else:
-                    self.raise_error(f'Expected Closing Bracket )  instead got {self.value_part}')
+                self.closingBracketErr()
         else:
-            self.raise_error(f'Expected Opening Bracket ( instead got {self.value_part}')
+            self.openingBracketErr()
 
     def defs(self):
-        if(self.value_part in DATATYPES):
+        if (self.value_part in DATATYPES):
             self.increase()
             self.decl()
-        elif(self.value_part=='func'):
+        elif (self.value_part == 'func'):
             self.increase()
             self.func_def()
-        elif(self.value_part=='class'):
+        elif (self.value_part == 'class'):
             self.increase()
             self.class_dec()
-        elif(self.value=='enum'):
+        elif (self.value_part == 'enum'):
             self.increase()
             self.enum_def()
         else:
             pass
 
     def args(self):
-        if(self.class_part=='Identifier' or self.class_part in CONST):
+        if (self.class_part == 'Identifier' or self.class_part in CONST):
             self.increase()
-            if(self.value_part==','):
+            if (self.value_part == ','):
                 self.increase()
                 self.mul_args()
             else:
                 pass
-        elif(self.next_token==')'):
+        elif (self.next_token == ')'):
             self.increase()
             pass
         else:
-            self.raise_error(f"Invalid argument passed-> {self.value_part}")
-    
+            # self.raise_error(f"Invalid argument passed-> {self.value_part}")
+            pass
+
     def mul_args(self):
-        if(self.class_part=='Identifier' or self.class_part in CONST):
+        if (self.class_part == 'Identifier' or self.class_part in CONST):
             self.increase()
-            if(self.value_part==','):
+            if (self.value_part == ','):
                 self.increase()
                 self.mul_args()
             else:
                 pass
-        elif(self.next_token==')'):
+        elif (self.next_token == ')'):
             self.increase()
             pass
         else:
             self.raise_error(f"Invalid argument passed-> {self.value_part}")
 
+    def params(self):
+        if (self.value_part in DATATYPES):
+            self.increase()
+            if (self.class_part == "Identifier"):
+                self.increase()
+                self.mul_params()
+            else:
+                self.validateVariableName()
+        else:
+            self.DataTypeErr()
+
+    def mul_params(self):
+        if (self.value_part == ','):
+            self.increase()
+            self.params()
+        else:
+            pass
+
     def decl(self):
-        if(self.class_part=='Identifier'):
+        if (self.class_part == 'Identifier'):
             self.increase()
             self.init()
             self.increase()
             self.mul_decl()
         else:
             self.validateVariableName()
-    
+
     def init(self):
-        if(self.value_part=='='):
+        if (self.value_part == '='):
             self.increase()
             self.S()
             pass
         else:
-            self.raise_error(f"Expected =  instead got {self.value_part}")
+            self.EqualsToErr()
 
     def mul_decl(self):
-        if(self.value_part==';'):
+        if (self.value_part == ';'):
             self.increase()
             pass
-        elif(self.value_part==','):
+        elif (self.value_part == ','):
             self.increase()
             self.decl()
         else:
             self.raise_error(f"Unexpected token {self.value_part}")
 
+    def body(self):
+        self.MST()
+
+
     def MST(self):
-        if(self.value_part in KEYWORDS or self.class_part=='Identifier'):
+        if (self.value_part in KEYWORDS):
             self.SST()
-            self.increase()
             self.MST()
         else:
             pass
 
     def SST(self):
-        if(self.value_part=='func'):
+        if (self.value_part == 'func'):
             self.fn_def()
-            self.increase()
-        elif(self.value_part=='when'):
+        elif (self.value_part == 'when'):
             self.if_else()
-            self.increase()
-        elif(self.value_part=='until'):
+        elif (self.value_part == 'until'):
             self.while_st()
-            self.increase()
-        elif(self.value_part=='repeat'):
+        elif (self.value_part == 'repeat'):
             self.for_st()
-            self.increase()
-        elif(self.class_part=='jump'):
+        elif (self.class_part == 'jump'):
             self.br_cont()
-            self.increase()
-        elif(self.value_part=='return'):
+        elif (self.value_part == 'return'):
             self.ret()
-            self.increase()
-        elif(self.value_part=='class'):
+        elif (self.value_part == 'class'):
             self.class_dec()
-            self.increase()
-        elif(self.value_part=='this'):
+        elif (self.value_part == 'this'):
             self.this_st()
-            self.increase()
-        elif(self.value_part=='try'):
+        elif (self.value_part == 'try'):
             self.try_catch()
-            self.increase()
-        elif(self.value_part=='enum'):
+        elif (self.value_part == 'enum'):
             self.enum_st()
-            self.increase()
-        elif(self.value_part in ACCESS_MODIFIERS):
+        elif (self.value_part in ACCESS_MODIFIERS):
             self.attribute_st()
-            self.increase()
-        elif(self.class_part=="Identifier"):
+        elif (self.class_part == "Identifier"):
             self.ids()
-            self.increase()
         else:
             pass
+
+    def if_else(self):
+        self.increase()
+        if (self.value_part == '('):
+            self.increase()
+            self.S()
+            self.increase()
+            if (self.value_part == ')'):
+                self.increase()
+                if (self.value_part == '{'):
+                    self.increase()
+                    self.body()
+                    if (self.value_part == '}'):
+                        self.increase()
+                        if (self.value_part == 'either'):
+                            self.increase()
+                            self.either()
+                        if (self.value_part == 'otherwise'):
+                            self.increase()
+                            self.otherwise()
+                        else:
+                            print('VALID IF CONDITION')
+                            pass
+                    else:
+                        self.closingBraceErr()
+            else:
+                self.closingBracketErr()
+        else:
+            self.openingBracketErr()
+
+    def either(self):
+        if (self.value_part == '('):
+            self.increase()
+            self.S()
+            self.increase()
+            if (self.value_part == ')'):
+                self.increase()
+                if (self.value_part == '{'):
+                    self.increase()
+                    self.body()
+                    if (self.value_part == '}'):
+                        self.increase()
+                        if (self.value_part == "either"):
+                            self.increase()
+                        else:
+                            print('VALID ELIF CONDITION')
+                            pass
+                    else:
+                        self.closingBraceErr()
+                else:
+                    self.openingBraceErr()
+            else:
+                self.closingBracketErr()
+        else:
+            self.openingBracketErr()
+
+    def otherwise(self):
+        if (self.value_part == '{'):
+            self.increase()
+            self.body()
+            if (self.value_part == '}'):
+                self.increase()
+                pass
+            else:
+                self.closingBraceErr()
+        else:
+            self.openingBraceErr()
+
+    def while_st(self):
+        self.increase()
+        if (self.value_part == '('):
+            self.increase()
+            self.S()
+            self.increase()
+            if (self.value_part == ')'):
+                self.increase()
+                if (self.value_part == '{'):
+                    self.increase()
+                    self.body()
+                    if (self.value_part == '}'):
+                        self.increase()
+                        pass
+                    else:
+                        self.closingBraceErr()
+                else:
+                    self.openingBraceErr()
+            else:
+                self.closingBracketErr()
+
+        else:
+            self.openingBracketErr()
+
+    def for_st(self):
+        self.increase()
+        if (self.value_part == '('):
+            self.increase()
+            if (self.value_part == 'num'):
+                self.increase()
+                self.decl()
+                self.increase()
+                self.S()
+                self.increase()
+                if (self.value_part == ';'):
+                    self.increase()
+                    self.ids()
+                    self.increase()
+                    if (self.value_part == ')'):
+                        self.increase()
+                        if (self.value_part == '{'):
+                            self.increase()
+                            self.body()
+                            if (self.value_part == '}'):
+                                self.increase()
+                                pass
+                            else:
+                                self.closingBraceErr()
+                        else:
+                            self.openingBraceErr()
+                    else:
+                        self.closingBracketErr()
+                else:
+                    self.SemiColonErr()
+            else:
+                self.DataTypeErr()
+        else:
+            self.openingBracketErr()
+
+    def ret(self):
+        self.increase()
+        self.S()
+        if (self.value_part == ';'):
+            self.increase()
+            pass
+        else:
+            self.SemiColonErr()
+
+    def br_cont(self):
+        self.increase()
+        if (self.value_part == ';'):
+            self.increase()
+            pass
+        else:
+            self.SemiColonErr()
+
+    def try_catch(self):
+        self.increase()
+        print("Valid")
+        if (self.value_part == '{'):
+            self.increase()
+            self.body()
+            if (self.value_part == '}'):
+                self.increase()
+                if (self.value_part == "catch"):
+                    self.increase()
+                    if (self.value_part == '('):
+                        self.increase()
+                        if (self.class_part == "Identifier"):
+                            self.increase()
+                            if (self.value_part == ')'):
+                                self.increase()
+                                if (self.value_part == '{'):
+                                    self.increase()
+                                    self.body()
+                                    if (self.value_part == '}'):
+                                        self.increase()
+                                        print("VALID TRY CATCH")
+                                        # pass
+                                    else:
+                                        self.closingBraceErr()
+                                else:
+                                    self.openingBraceErr()
+                            else:
+                                self.closingBracketErr()
+                        else:
+                            self.raise_error(f"Expected Identifier")
+                    else:
+                        self.openingBracketErr()
+                else:
+                    self.raise_error(f"Expected catch statement")
+            else:
+                self.closingBraceErr()
+        else:
+            self.openingBraceErr()
+
+    def fn_def(self):
+        self.increase()
+        if (self.value_part == "virtual"):
+            self.increase()
+        if (self.value_part in RETURN_TYPES):
+            self.increase()
+            if (self.class_part == "Identifier"):
+                self.increase()
+                if (self.value_part == '('):
+                    self.increase()
+                    self.params()
+                    if (self.value_part == ')'):
+                        self.increase()
+                        if (self.value_part == '{'):
+                            self.increase()
+                            self.body()
+                            if (self.value_part == '}'):
+                                self.increase()
+                                pass
+                            else:
+                                self.closingBraceErr()
+                        else:
+                            self.openingBraceErr()
+                    else:
+                        self.closingBracketErr()
+                else:
+                    self.openingBracketErr()
+            else:
+                self.validateVariableName()
+
+        else:
+            self.raise_error("Function return type expected.")
+
+    def enum_st(self):
+        self.increase()
+        if (self.class_part == "Identifier"):
+            self.increase()
+            if (self.value_part == '='):
+                self.increase()
+                if (self.value_part == '{'):
+                    self.increase()
+                    self.key_st()
+                    if (self.value_part == '}'):
+                        self.increase()
+                        pass
+                    else:
+                        self.closingBraceErr()
+                else:
+                    self.openingBraceErr()
+            else:
+                self.EqualsToErr()
+        else:
+            self.validateVariableName()
+
+    def key_st(self):
+        self.increase()
+        if (self.class_part == "Identifier"):
+            self.increase()
+            if (self.value_part == ':'):
+                self.increase()
+                self.S()
+                self.increase()
+                if (self.value_part == ','):
+                    self.key_st()
+                else:
+                    self.commaErr()
+            else:
+                self.colonErr()
+        else:
+            self.validateVariableName()
+
+    def class_dec(self):
+        self.increase()
+        self.classList()
+        if (self.value_part == '{'):
+            self.increase()
+            self.body()
+            if (self.value_part == '}'):
+                self.increase()
+                pass
+            else:
+                self.closingBraceErr()
+        else:
+            self.openingBraceErr()
+
+    def classList(self):
+        self.increase()
+        if (self.class_part == "Identifier"):
+            self.classDiv()
+        else:
+            self.validateVariableName()
+
+    def classDiv(self):
+        self.increase()
+        if (self.value_part == '('):
+            self.inh()
+        elif (self.value_part == ':'):
+            if (self.value_part in ACCESS_MODIFIERS):
+                self.increase()
+                if (self.class_part == "Identifier"):
+                    self.increase()
+                    pass
+                else:
+                    self.validateVariableName()
+        else:
+            self.invalid_token()
+
+    def inh(self):
+        self.increase()
+        if (self.value_part == ')'):
+            self.increase()
+            pass
+        elif (self.class_part == 'Identifier'):
+            self.increase()
+            self.args()
+            if (self.value_part == ')'):
+                self.increase()
+                pass
+            else:
+                self.closingBracketErr()
+        else:
+            self.colonErr()
+
+        self.increase()
+        if (self.class_part == "Identifier"):
+            self.increase()
+            self.identifier()
+        else:
+            self.validateVariableName()
+
+    def identifier(self):
+        self.increase()
+        self.assign_st()
+        if (self.value_part == '('):
+            self.increase()
+            self.bracket_exp()
+            self.obj_dec()
+        else:
+            self.openingBracketErr()
+
+    def assign_st(self):
+        self.increase()
+        if (self.value_part == '='):
+            self.increase()
+            self.S()
+            if (self.value_part == ';'):
+                self.increase()
+                pass
+            else:
+                self.SemiColonErr()
+        else:
+            self.EqualsToErr()
+
+    def bracket_exp(self):
+        self.increase()
+        self.constructor_def()
+        self.fn_call()
+
+    def constructor_def(self):
+        self.increase()
+        self.params()
+        if (self.value_part == ')'):
+            self.increase()
+            if (self.value_part == '{'):
+                self.increase()
+                self.body()
+                if (self.value_part == '}'):
+                    self.increase()
+                    pass
+                else:
+                    self.closingBraceErr()
+            else:
+                self.openingBraceErr()
+        else:
+            self.openingBracketErr()
+
+    def obj_dec(self):
+        self.increase()
+        if (self.class_part == "Identifier"):
+            self.increase()
+            if (self.value_part == '='):
+                self.increase()
+                if (self.value_part in KEYWORDS):
+                    if (self.class_part == "Identifier"):
+                        self.increase()
+                        if (self.value_part == '('):
+                            self.increase()
+                            if (self.value_part == ')'):
+                                self.increase()
+                                if (self.value_part == ';'):
+                                    self.increase()
+                                    pass
+                                else:
+                                    self.SemiColonErr()
+                            else:
+                                self.closingBracketErr()
+                        else:
+                            self.openingBracketErr()
+                    else:
+                        self.validateVariableName()
+                else:
+                    self.invalid_token()
+            else:
+                self.EqualsToErr()
+        else:
+            self.validateVariableName()
+
+    def fn_call(self):
+        self.increase()
+        self.args()
+        if (self.value_part == ')'):
+            self.increase()
+            if (self.value_part == ';'):
+                self.increase()
+                pass
+            else:
+                self.SemiColonErr()
+        else:
+            self.closingBracketErr()
+            
+    def S(self):
+        if self.value_part=='(' or self.value_part=='!' or self.class_part in CONST or self.class_part=='Identifier':
+            self.AE()
+            self.OE()
+        else:
+            pass
+
+    def AE(self):
+        self.RE()
+        self.AE1()
+
+    def AE1(self):
+        if self.check_next_token("&&"):
+            self.increase()
+            self.RE()
+            self.AE1()
+        else:
+            pass
+
+    def RE(self):
+        self.E()
+        self.RE1()
+
+    def E(self):
+        self.T()
+        self.T1()
+    
+    def T(self):
+        self.F()
+        self.T1()
+
+    def F(self):
+        if self.class_part=='Identifier':
+            self.increase()
+            self.dot()
+        
+
+    def dot(self):
+        if self.value_part==".":
+            self.increase()
+            if self.class_part=='Identifier':
+                self.increase()
+                self.dot()
+        elif self.value_part=="(":
+            self.increase()
+            self.new_bracket()
+        else:
+            pass
+
+    # def new_bracket(self):
+    #     if self.class_part == 'Identifier':
+
+
+
+    def RE1(self):
+        if self.value_part in RELATIONAL_OPERATORS:
+            self.increase()
+            if (self.value_part in DATATYPES):
+                self.increase()
+                self.T1()
+                self.E1()
+                self.RE1()
+            elif self.class_part=="Identifier":
+                self.value_part()
+                self.T1()
+                self.E1()
+                self.RE1()
+            else:
+                raise ("Exception")
+        else:
+            pass
+
+    def E1(self):
+        if self.check_next_token("+"):
+            self.increase()
+            self.value()
+            self.T1()
+            self.E1()
+        elif self.check_next_token("-"):
+            self.increase()
+            self.value()
+            self.T1()
+            self.E1()
+        else:
+            pass
+
+    # def T1(self):
+        
