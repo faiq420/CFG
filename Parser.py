@@ -18,12 +18,11 @@ CLASSES = []
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
-        print(tokens)
-        self.value_part = self.tokens[0].get("value_part")
+        self.value_part = self.tokens[0].get("value_part") if(len(tokens)) else None
         self.line_number = 1
-        self.class_part = self.tokens[0].get("value_part")
+        self.class_part = self.tokens[0].get("class_part") if(len(tokens)) else None
         self.token_index = 0
-        self.next_token=self.tokens[self.token_index+1].get("value_part")
+        self.next_token=self.tokens[self.token_index+1].get("value_part") if(len(tokens)) else None
 
     def increase(self):
         self.token_index += 1
@@ -678,6 +677,7 @@ class Parser:
     def OE1(self):
         if(self.value_part=='||'):
             self.increase()
+            print(self.value_part)
             # self.AE()
             # self.OE1()
         else:
