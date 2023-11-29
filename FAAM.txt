@@ -1,5 +1,12 @@
+num a=!s;
+fp s=23.2;
 void main(){
+    /*num a=!s;
+    bool x=False;
     try{
-        break;
-    }catch(e){}
+        string a="Any";
+    }catch(e){
+        fp s=23.2;
+    }*/
 }
+num a=!s;

@@ -104,7 +104,7 @@ class Tokenizer:
                 continue
 
             if(self.currentChar == '\n'):
-                global line_Number
+                # global line_Number
                 line_Number +=1
                 self.increase()
                 continue
@@ -114,13 +114,12 @@ class Tokenizer:
                 self.increase()
                 self.increase()
                 while(self.currentChar!='*' and self.nextChar!='/'):
-                    line=0
+                    line=line_Number
                     # global line_Number
                     if(self.currentChar == '\n'):
-                        line+=1
+                        line_Number+=1
                         self.increase()
                         continue
-                    line_Number +=line
                     self.increase()
                 self.increase()
                 self.increase()
@@ -541,10 +540,6 @@ class Tokenizer:
                 self.tokens.append(obj)
                 self.increase()
                 continue
-
-            
-
-                
                 
             if(self.currentChar=='>' or self.currentChar=='<' or self.currentChar=='!'):
                 symbolToken=self.currentChar
@@ -596,7 +591,7 @@ class Tokenizer:
                             
 
             self.increase()
-        print(self.tokens,len(self.tokens))
+        # print(self.tokens,len(self.tokens))
         return self.tokens
 
 
