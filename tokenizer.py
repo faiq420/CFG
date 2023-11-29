@@ -114,7 +114,6 @@ class Tokenizer:
                 self.increase()
                 self.increase()
                 while(self.currentChar!='*' and self.nextChar!='/'):
-                    line=line_Number
                     # global line_Number
                     if(self.currentChar == '\n'):
                         line_Number+=1
@@ -127,6 +126,8 @@ class Tokenizer:
             
             if(self.currentChar=='#'):
                 while(not self.currentChar=='\n'):
+                    if(self.currentChar==None):
+                        break
                     self.increase()
                 self.increase()
                 continue
