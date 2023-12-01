@@ -1,5 +1,12 @@
-num a=!s;
-fp s=23.2;
+#num a=a(1,2,False,e);
+#fp s=23.2;
+#bool x=a <= 3;
+#func virtual void add(num a,num b,W a){return a+b;}
+class A:public B{
+    A(){
+        this.x=False;
+    }
+}
 void main(){
     /*num a=!s;
     bool x=False;
@@ -8,5 +15,25 @@ void main(){
     }catch(e){
         fp s=23.2;
     }*/
+    #repeat(num i=0;i<=6;i=i + 1){}
+    #return a <= 3;
+    #until(a <= 3){break;}
+    /*when(a <= 3){
+        bool x=a <= 3;
+    }either(a <= 3){
+        bool x=a <= 3;
+    }either(a <= 3){
+        bool x=a <= 3;
+    }otherwise{
+        bool x=a <= 3;
+    }*/
+    /*enum TextStyle ={
+    ITALICS = 1,
+    BOLD = 2,
+    UNDERLINE = 4
+    }*/
+    #this.y=a <= 3;
+    #this.x=b <= 3;
+
 }
-num a=!s;
+#num a=!s;
