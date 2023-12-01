@@ -260,6 +260,25 @@ class Parser:
         else:
             pass
 
+    def this_st(self):
+        self.increase()
+        if(self.value_part=='.'):
+            self.increase()
+            if(self.class_part=="Identifier"):
+                self.increase()
+                if(self.value_part=='='):
+                    self.increase()
+                    self.S()
+                    if(self.value_part==";"):
+                        self.increase()
+                        print("VALID THIS STATEMENT")
+                else:
+                    self.EqualsToErr()
+            else:
+                self.invalidArgumentErr()
+        else:
+            self.invalid_token()
+
     def if_else(self):
         self.increase()
         if (self.value_part == '('):
