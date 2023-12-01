@@ -351,20 +351,33 @@ class Parser:
         else:
             self.openingBracketErr()
 
+    def ids(self):
+        self.increase()
+        self.identifier()
+
+    def inc_dec(self):
+        if(self.class_part=="Identifier"):
+            self.increase()
+            if(self.value_part=="="):
+                self.increase()
+                self.S()
+                print(self.value_part)
+                print("VALID INCREMENT/DECREMENT")
+            else:
+                self.EqualsToErr()
+        else:
+            self.invalidArgumentErr()
+
     def for_st(self):
         self.increase()
         if (self.value_part == '('):
             self.increase()
             if (self.value_part == 'num'):
-                self.increase()
                 self.decl()
-                self.increase()
                 self.S()
-                self.increase()
                 if (self.value_part == ';'):
                     self.increase()
-                    self.ids()
-                    self.increase()
+                    self.inc_dec()
                     if (self.value_part == ')'):
                         self.increase()
                         if (self.value_part == '{'):
@@ -372,6 +385,7 @@ class Parser:
                             self.body()
                             if (self.value_part == '}'):
                                 self.increase()
+                                print("VALID FOR LOOP")
                                 pass
                             else:
                                 self.closingBraceErr()
@@ -573,14 +587,15 @@ class Parser:
             self.validateVariableName()
 
     def identifier(self):
-        self.increase()
-        self.assign_st()
-        if (self.value_part == '('):
-            self.increase()
+        if(self.value_part=="="):
+            self.assign_st()
+        elif(self.value_part=="("):
             self.bracket_exp()
+        elif(self.class_part=="Identifier"):
             self.obj_dec()
         else:
-            self.openingBracketErr()
+            self.indexationError()
+
 
     def assign_st(self):
         self.increase()
@@ -601,22 +616,21 @@ class Parser:
         self.fn_call()
 
     def constructor_def(self):
-        self.increase()
-        self.params()
-        if (self.value_part == ')'):
+        if(self.class_part=="DataType"):
+            self.params()
             self.increase()
-            if (self.value_part == '{'):
+            if(self.value_part=="{"):
                 self.increase()
                 self.body()
-                if (self.value_part == '}'):
+                if(self.value_part=="}"):
                     self.increase()
-                    pass
+                    print("VALID PARAMETERIZED CONSTRUCTOR DEFINITION")
                 else:
                     self.closingBraceErr()
             else:
                 self.openingBraceErr()
         else:
-            self.openingBracketErr()
+            self.fn_call()
 
     def obj_dec(self):
         self.increase()
