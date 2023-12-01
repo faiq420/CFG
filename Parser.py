@@ -105,6 +105,7 @@ class Parser:
                     f'Main function is expected instead got {self.value_part}')
 
     def main_func(self):
+        print("ENTERED MAIN FUNCTION")
         if (self.value_part == '('):
             self.increase()
             self.args()
@@ -131,11 +132,9 @@ class Parser:
             self.decl()
             self.defs()
         elif (self.value_part == 'func'):
-            # self.increase()
             self.fn_def()
             self.defs()
         elif (self.value_part == 'class'):
-            self.increase()
             self.class_dec()
             self.defs()
         elif (self.value_part == 'enum'):
@@ -175,7 +174,7 @@ class Parser:
             self.raise_error(f"Invalid argument passed-> {self.value_part}")
 
     def params(self):
-        if (self.value_part in DATATYPES):
+        if (self.value_part in DATATYPES or self.class_part=="Identifier"):
             self.increase()
             if (self.class_part == "Identifier"):
                 self.increase()
@@ -224,7 +223,7 @@ class Parser:
         self.MST()
 
     def MST(self):
-        if (self.value_part in KEYWORDS or self.value_part in DATATYPES):
+        if (self.value_part in KEYWORDS or self.value_part in DATATYPES or self.class_part=="Identifier"):
             self.SST()
             self.MST()
         else:
@@ -377,7 +376,6 @@ class Parser:
             if(self.value_part=="="):
                 self.increase()
                 self.S()
-                print(self.value_part)
                 print("VALID INCREMENT/DECREMENT")
             else:
                 self.EqualsToErr()
@@ -560,14 +558,14 @@ class Parser:
             self.body()
             if (self.value_part == '}'):
                 self.increase()
-                pass
+                print("VALID CLASS DECLARATION")
             else:
                 self.closingBraceErr()
         else:
             self.openingBraceErr()
 
     def classList(self):
-        self.increase()
+        # self.increase()
         if (self.class_part == "Identifier"):
             self.classDiv()
         else:
@@ -578,6 +576,7 @@ class Parser:
         if (self.value_part == '('):
             self.inh()
         elif (self.value_part == ':'):
+            self.increase()
             if (self.value_part in ACCESS_MODIFIERS):
                 self.increase()
                 if (self.class_part == "Identifier"):
@@ -591,25 +590,15 @@ class Parser:
     def inh(self):
         self.increase()
         if (self.value_part == ')'):
-            self.increase()
+            # self.increase()
             pass
         elif (self.class_part == 'Identifier'):
-            self.increase()
+            # self.increase()
             self.args()
             if (self.value_part == ')'):
                 self.increase()
-                pass
             else:
                 self.closingBracketErr()
-        else:
-            self.colonErr()
-
-        self.increase()
-        if (self.class_part == "Identifier"):
-            self.increase()
-            self.identifier()
-        else:
-            self.validateVariableName()
 
     def identifier(self):
         if(self.value_part=="="):
@@ -636,28 +625,36 @@ class Parser:
 
     def bracket_exp(self):
         self.increase()
-        self.constructor_def()
-        self.fn_call()
-
+        flag=self.token_index
+        flagVariable= self.tokens[flag].get("value_part")
+        while(flagVariable!=')'):
+            flag+=1
+            flagVariable= self.tokens[flag].get("value_part")
+        if(self.tokens[flag+1].get("value_part")=="{"):
+            self.constructor_def()
+        else:
+            self.fn_call()
+            
     def constructor_def(self):
-        if(self.class_part=="DataType"):
-            self.params()
+        self.params()
+        if(self.value_part==")"):
             self.increase()
             if(self.value_part=="{"):
                 self.increase()
                 self.body()
                 if(self.value_part=="}"):
                     self.increase()
-                    print("VALID PARAMETERIZED CONSTRUCTOR DEFINITION")
+                    print("VALID CONSTRUCTOR")
                 else:
                     self.closingBraceErr()
             else:
                 self.openingBraceErr()
         else:
-            self.fn_call()
+            self.closingBracketErr()
+        
 
     def obj_dec(self):
-        self.increase()
+        # self.increase()
         if (self.class_part == "Identifier"):
             self.increase()
             if (self.value_part == '='):
