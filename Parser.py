@@ -3,7 +3,7 @@ CONST = ['int_const', 'FP_const', 'str_const', 'bool_const', 'char_const']
 KEYWORDS = ["func", "repeat", "until", 'when', 'either', 'otherwise', 'this', 'void', 'new',
             'main', 'return', 'private', 'public', 'break', 'continue', 'class', 'try', 'catch', 'enum']
 BOOLEAN = ['True', 'False']
-RETURN_TYPES = ["void", "num"]
+RETURN_TYPES = ["void", "num","bool","string"]
 RELATIONAL_OPERATORS = ['==', '!=', '<=', '>=', '>', '<']
 LOGICAL_OPERATORS = ['&&', '||']
 DEFS = ["num", "string", "bool", "fp", "char", 'func', "enum", "class"]
@@ -131,8 +131,8 @@ class Parser:
             self.decl()
             self.defs()
         elif (self.value_part == 'func'):
-            self.increase()
-            self.func_def()
+            # self.increase()
+            self.fn_def()
             self.defs()
         elif (self.value_part == 'class'):
             self.increase()
@@ -183,7 +183,7 @@ class Parser:
             else:
                 self.validateVariableName()
         else:
-            self.DataTypeErr()
+            pass
 
     def mul_params(self):
         if (self.value_part == ','):
@@ -399,13 +399,16 @@ class Parser:
 
     def ret(self):
         self.increase()
-        self.S()
-        if (self.value_part == ';'):
-            self.increase()
-            print(self.value_part)
-            print("VALID RETURN STATEMENT")
+        if(self.value_part!=";"):
+            self.S()
+            if (self.value_part == ';'):
+                self.increase()
+                print("VALID RETURN STATEMENT")
+            else:
+                self.SemiColonErr()
         else:
-            self.SemiColonErr()
+            self.increase()
+            print("VALID RETURN STATEMENT")
 
     def br_cont(self):
         self.increase()
@@ -472,7 +475,7 @@ class Parser:
                             self.body()
                             if (self.value_part == '}'):
                                 self.increase()
-                                pass
+                                print("VALID FUNCTION")
                             else:
                                 self.closingBraceErr()
                         else:
@@ -526,7 +529,6 @@ class Parser:
 
     def mul_key_st(self):
         if(self.value_part==','):
-            # self.increase()
             self.key_st()
         else:
             pass
@@ -599,7 +601,6 @@ class Parser:
             self.obj_dec()
         else:
             self.indexationError()
-
 
     def assign_st(self):
         self.increase()
