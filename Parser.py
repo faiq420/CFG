@@ -332,7 +332,6 @@ class Parser:
         if (self.value_part == '('):
             self.increase()
             self.S()
-            self.increase()
             if (self.value_part == ')'):
                 self.increase()
                 if (self.value_part == '{'):
@@ -340,7 +339,7 @@ class Parser:
                     self.body()
                     if (self.value_part == '}'):
                         self.increase()
-                        pass
+                        print("VALID WHILE LOOP")
                     else:
                         self.closingBraceErr()
                 else:
@@ -405,7 +404,8 @@ class Parser:
         self.S()
         if (self.value_part == ';'):
             self.increase()
-            pass
+            print(self.value_part)
+            print("VALID RETURN STATEMENT")
         else:
             self.SemiColonErr()
 
@@ -413,7 +413,7 @@ class Parser:
         self.increase()
         if (self.value_part == ';'):
             self.increase()
-            pass
+            print("VALID JUMP STATEMENT")
         else:
             self.SemiColonErr()
 
