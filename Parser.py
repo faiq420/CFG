@@ -265,7 +265,6 @@ class Parser:
         if (self.value_part == '('):
             self.increase()
             self.S()
-            self.increase()
             if (self.value_part == ')'):
                 self.increase()
                 if (self.value_part == '{'):
@@ -273,6 +272,7 @@ class Parser:
                     self.body()
                     if (self.value_part == '}'):
                         self.increase()
+                        print("VALID IF CONDITION")
                         if (self.value_part == 'either'):
                             self.increase()
                             self.either()
@@ -293,7 +293,6 @@ class Parser:
         if (self.value_part == '('):
             self.increase()
             self.S()
-            self.increase()
             if (self.value_part == ')'):
                 self.increase()
                 if (self.value_part == '{'):
@@ -301,11 +300,10 @@ class Parser:
                     self.body()
                     if (self.value_part == '}'):
                         self.increase()
+                        print("VALID ELSE IF CONDITION")
                         if (self.value_part == "either"):
                             self.increase()
-                        else:
-                            print('VALID ELIF CONDITION')
-                            pass
+                            self.either()
                     else:
                         self.closingBraceErr()
                 else:
