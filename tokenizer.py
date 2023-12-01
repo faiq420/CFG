@@ -106,6 +106,12 @@ class Tokenizer:
             obj['line#']=line_Number
             return obj
         
+        if(token == ':'):
+            obj['class_part']=":"
+            obj['value_part']=token
+            obj['line#']=line_Number
+            return obj
+        
 
     def tokenize(self):
         global line_Number
@@ -141,6 +147,7 @@ class Tokenizer:
                     if(self.currentChar==None):
                         break
                     self.increase()
+                line_Number+=1
                 self.increase()
                 continue
 
@@ -532,6 +539,14 @@ class Tokenizer:
                 
             if(self.currentChar == ';'):
                 obj['class_part']=";"
+                obj['value_part']=self.currentChar
+                obj['line#']=line_Number
+                self.tokens.append(obj)
+                self.increase()
+                continue
+                
+            if(self.currentChar == ':'):
+                obj['class_part']=":"
                 obj['value_part']=self.currentChar
                 obj['line#']=line_Number
                 self.tokens.append(obj)
