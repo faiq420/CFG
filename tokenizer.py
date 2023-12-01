@@ -36,7 +36,7 @@ class Tokenizer:
         self.value_part=''
         self.line_number=''
         global line_Number
-
+        self.flag = True
         charAtEndOfLiteral={}
 
     def increase(self):
@@ -115,7 +115,7 @@ class Tokenizer:
 
     def tokenize(self):
         global line_Number
-        while(self.currentChar != None):
+        while(self.currentChar != None and self.flag):
             obj={}
             if(self.currentChar == " "):
                 self.increase()
@@ -369,6 +369,7 @@ class Tokenizer:
                     obj['class_part']="invalid_token"
                     obj['value_part']=charToken
                     obj['line#']=line_Number
+                    self.flag=False
                     self.tokens.append(obj)
                     self.increase()
                     break
@@ -632,7 +633,7 @@ class Tokenizer:
                             
 
             self.increase()
-        print(self.tokens,len(self.tokens))
+        # print(self.tokens,len(self.tokens))
         return self.tokens
 
 
