@@ -153,8 +153,8 @@ class Parser:
                 self.mul_args()
             else:
                 pass
-        elif (self.next_token == ')'):
-            self.increase()
+        elif (self.value_part == ')'):
+            # self.increase()
             pass
         else:
             # self.raise_error(f"Invalid argument passed-> {self.value_part}")
@@ -650,12 +650,10 @@ class Parser:
             self.validateVariableName()
 
     def fn_call(self):
-        self.increase()
         self.args()
         if (self.value_part == ')'):
             self.increase()
             if (self.value_part == ';'):
-                self.increase()
                 pass
             else:
                 self.SemiColonErr()
@@ -665,31 +663,24 @@ class Parser:
     def S(self):
         if self.value_part=='(' or self.value_part=='!' or self.class_part in CONST or self.class_part=='Identifier':
             self.AE()
-            if self.value_part=='||':
-                print("OE")
-                self.OE1()
-            else:
-                pass
-            print("VALID ASSIGNMENT")
+            self.OE1()
+            
+            print("VALID EXPRRESSION")
         else:
             self.invalidArgumentErr()
 
     def OE1(self):
         if(self.value_part=='||'):
             self.increase()
-            print(self.value_part)
-            # self.AE()
-            # self.OE1()
+            self.AE()
+            self.OE1()
         else:
             pass
 
     def AE(self):
         self.RE()
-        if(self.value_part=='&&'):
-            self.AE1()
-        else:
-            pass
-
+        self.AE1()
+        
     def AE1(self):
         if self.value_part=="&&":
             self.increase()
@@ -703,26 +694,16 @@ class Parser:
         self.RE1()
 
     def RE1(self):
-        if self.value_part in RELATIONAL_OPERATORS:
+        if(self.class_part == "RO"):
             self.increase()
-            if (self.value_part in DATATYPES):
-                self.increase()
-                self.T1()
-                self.E1()
-                self.RE1()
-            elif self.class_part=="Identifier":
-                self.value_part()
-                self.T1()
-                self.E1()
-                self.RE1()
-            else:
-                raise ("Exception")
+            self.E()
+            self.RE1()
         else:
             pass
 
     def E(self):
         self.T()
-        self.T1()
+        self.E1()
     
     def E1(self):
         if(self.class_part=="PM"):
@@ -747,7 +728,7 @@ class Parser:
     def F(self):
         if self.class_part=='Identifier':
             self.increase()
-            # self.dot()
+            self.dot()
         elif self.class_part in CONST:
             self.increase()
         elif self.value_part=='(':
@@ -773,8 +754,8 @@ class Parser:
         elif self.value_part=="[":
             self.increase()
             self.S()
-            self.increase()
             if(self.value_part=="]"):
+                print("760")
                 self.increase()
                 if(self.value_part=="["):
                     self.Dim()
@@ -789,23 +770,23 @@ class Parser:
 
     def new_bracket(self):
         if(self.class_part=="DataType"):
-            self.fn_call()
+            self.params()
             self.dot()
         else:
-            self.params()
+            self.fn_call()
             self.dot()
 
     def Dim(self):
+        print("called")
         if (self.value_part=="["):
             self.increase()
             self.S()
-            self.increase()
             if(self.value_part=="]"):
                 self.increase()
                 self.Dim()
             else:
                 self.indexationError("]")
-        elif(self.next_token!="."):
-            self.indexationError("[")
+        # elif(self.next_token!="."):
+        #     self.indexationError("[")
         else:
             pass
