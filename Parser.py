@@ -494,11 +494,10 @@ class Parser:
             if (self.value_part == '='):
                 self.increase()
                 if (self.value_part == '{'):
-                    self.increase()
                     self.key_st()
                     if (self.value_part == '}'):
                         self.increase()
-                        pass
+                        print("VALID ENUMERATION")
                     else:
                         self.closingBraceErr()
                 else:
@@ -512,18 +511,25 @@ class Parser:
         self.increase()
         if (self.class_part == "Identifier"):
             self.increase()
-            if (self.value_part == ':'):
+            if (self.value_part == '='):
                 self.increase()
                 self.S()
-                self.increase()
+                # self.increase()
                 if (self.value_part == ','):
                     self.key_st()
                 else:
-                    self.commaErr()
+                    pass
             else:
-                self.colonErr()
+                self.EqualsToErr()
         else:
             self.validateVariableName()
+
+    def mul_key_st(self):
+        if(self.value_part==','):
+            # self.increase()
+            self.key_st()
+        else:
+            pass
 
     def class_dec(self):
         self.increase()
