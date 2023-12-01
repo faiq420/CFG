@@ -335,7 +335,6 @@ class Tokenizer:
                         self.increase()
                         continue
                     if(charAtEndOfLiteral):
-                        print(charAtEndOfLiteral)
                         self.tokens.append(charAtEndOfLiteral)    
             # if(charAtEndOfLiteral):
             #     print(charAtEndOfLiteral)
@@ -360,21 +359,19 @@ class Tokenizer:
             if (self.currentChar == "'"):
                 charToken = self.currentChar
                 self.increase()
-                if(self.nextChar == '\\'):
-                    print(self.currentChar)
+                if(self.currentChar == '\\'):
                     charToken += self.currentChar
-                    self.increase()    
-                    print(self.currentChar)
+                    self.increase()
+                    # charToken=charToken[0:2]
                 charToken += self.currentChar
                 self.increase()
-                if(self.nextChar != "'"):
-                    print(len(charToken),'sa')
+                if(self.currentChar != "'"):
                     obj['class_part']="invalid_token"
                     obj['value_part']=charToken
                     obj['line#']=line_Number
                     self.tokens.append(obj)
                     self.increase()
-                    continue
+                    break
                 charToken += self.currentChar
                 self.increase()
                 obj['class_part']="char_const"
@@ -635,7 +632,7 @@ class Tokenizer:
                             
 
             self.increase()
-        # print(self.tokens,len(self.tokens))
+        print(self.tokens,len(self.tokens))
         return self.tokens
 
 
