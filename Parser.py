@@ -57,7 +57,7 @@ class Parser:
         self.AccessModifier = None
         self.TypeModifier = None
         self.CR = None
-        self.PL = None
+        self.PL = []
         self.ScopeId=0
 
     def increase(self):
@@ -135,6 +135,7 @@ class Parser:
                     f"Main function is expected instead got {self.value_part}"
                 )
         print(self.Scope,"Scope Table")
+        print(self.DefinitionTable,"Definition Table")
         print(self.TestScope,"All")
 
     def main_func(self):
@@ -186,6 +187,10 @@ class Parser:
 
     def args(self):
         if self.class_part == "Identifier" or self.class_part in CONST:
+            if "->" not in self.Type:
+                self.Type=self.Type+"->"+self.value_part
+            else:
+                self.Type=self.Type+","+self.value_part
             self.increase()
             if self.value_part == ",":
                 self.increase()
@@ -237,6 +242,20 @@ class Parser:
             self.params()
         else:
             pass
+
+    def searchParents(self):
+        if self.class_part=="Identifier":
+            self.PL.append(self.value_part)
+            self.increase()
+            self.mul_searchParents()
+        else:
+            pass
+
+    def mul_searchParents(self):
+        if(self.value_part==","):
+            self.increase()
+            self.searchParents()
+        else:pass
 
     def decl(self):
         if self.value_part in DATATYPES:
@@ -592,6 +611,7 @@ class Parser:
     def enum_st(self):
         self.increase()
         if self.class_part == "Identifier":
+            self.insertDT(self.value_part,"enum","-","-")
             self.increase()
             if self.value_part == "=":
                 self.increase()
@@ -634,21 +654,29 @@ class Parser:
 
     def class_dec(self):
         self.increase()
-        self.classList()
-        if self.value_part == "{":
+        if(self.value_part in ACCESS_MODIFIERS):
+            self.AccessModifier=self.value_part
+            self.Type="class"
             self.increase()
-            self.body()
-            if self.value_part == "}":
+            self.classList()
+            self.insertDT(self.Name,self.Type,self.AccessModifier,self.PL)
+            self.PL=[]
+            if self.value_part == "{":
                 self.increase()
-                print("VALID CLASS DECLARATION")
+                self.body()
+                if self.value_part == "}":
+                    self.increase()
+                    print("VALID CLASS DECLARATION")
+                else:
+                    self.closingBraceErr()
             else:
-                self.closingBraceErr()
+                self.openingBraceErr()
         else:
-            self.openingBraceErr()
-
+            self.invalid_token()
     def classList(self):
         # self.increase()
         if self.class_part == "Identifier":
+            self.Name=self.value_part
             self.classDiv()
         else:
             self.validateVariableName()
@@ -672,11 +700,11 @@ class Parser:
     def inh(self):
         self.increase()
         if self.value_part == ")":
-            # self.increase()
-            pass
+            self.increase()
+            
         elif self.class_part == "Identifier":
             # self.increase()
-            self.args()
+            self.searchParents()
             if self.value_part == ")":
                 self.increase()
             else:
@@ -937,3 +965,26 @@ class Parser:
         filteredScopeTb=list(filter(lambda x:x["ScopeId"]!=self.ScopeNumber,self.Scope))
         self.ScopeNumber-=1
         self.Scope=filteredScopeTb
+
+    def insertDT(self,n,t,a,p):
+        DT=self.lookupDT(n)
+        if(len(DT)==0):
+            if(len(p)==0):
+                obj={'Name':n,"Type":t,"AM":a,"Parent":p}
+                self.DefinitionTable.append(obj)
+            else:
+                exists=True
+                for parent in p:
+                    PDT=self.lookupDT(parent)
+                    if(len(PDT)==0):
+                        exists=False
+                        self.RedeclarationError(f"Parent Class({parent}) for class {n} doesn't exist.")
+                if(exists==True):
+                    obj={'Name':n,"Type":t,"AM":a,"Parent":p}
+                    self.DefinitionTable.append(obj)
+        else:
+            self.RedeclarationError(f"Class/Enum of name {n} already exists")
+
+    def lookupDT(self,n):
+        check=list(filter(lambda x:x['Name']==n,self.DefinitionTable))
+        return check
