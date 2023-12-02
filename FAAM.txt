@@ -1,20 +1,25 @@
+#char x= 'c' ;
 #num a=a(1,2,False,e);
+#string z=1;
 #fp s=23.2;
 #bool x=a <= 3;
-#func virtual void add(num a,num b,W a){return a+b;}
-class A:public B{
+#func virtual void add(num a,num b,W x){return a+b;}
+/*class public A(){
     A(){
         this.x=False;
     }
 }
+class public B(A){}*/
 void main(){
+    #fp floatingPt=-0.00;
+    #func virtual void sub(num a,num b,W x){return a+b;}
     /*num a=!s;
-    bool x=False;
+    bool x=False;*/
     try{
         string a="Any";
-    }catch(e){
+    }catch(string e){
         fp s=23.2;
-    }*/
+    }
     #repeat(num i=0;i<=6;i=i + 1){}
     #return a <= 3;
     #until(a <= 3){break;}
@@ -31,6 +36,10 @@ void main(){
     ITALICS = 1,
     BOLD = 2,
     UNDERLINE = 4
+    }
+    enum random={
+        CHECK=1,
+        ASA=2
     }*/
     #this.y=a <= 3;
     #this.x=b <= 3;
