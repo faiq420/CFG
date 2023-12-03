@@ -59,6 +59,9 @@ class Parser:
         self.CR = None
         self.PL = []
         self.ScopeId=0
+        self.currentClass=None
+        self.classConstructor=None
+        self.currentEnum=None
 
     def increase(self):
         self.token_index += 1
@@ -122,6 +125,15 @@ class Parser:
     def RedeclarationError(self, message):
         self.raise_error(message)
 
+    def invalidClassConstructor(self,message):
+        self.raise_error(message)
+
+    def accessModiferRequirement(self):
+        self.raise_error(f"Expected Access Modifier for function")
+
+    def invalidModifier(self):
+        self.raise_error(f"Unexpected Access Modifier {self.value_part} for function")
+
     def Start(self):
         if self.value_part in DEFS:
             self.defs()
@@ -136,6 +148,7 @@ class Parser:
                 )
         print(self.Scope,"Scope Table")
         print(self.DefinitionTable,"Definition Table")
+        print(self.MemberTable,"Member Table")
         print(self.TestScope,"All")
 
     def main_func(self):
@@ -180,7 +193,7 @@ class Parser:
             self.defs()
         elif self.value_part == "enum":
             self.increase()
-            self.enum_def()
+            self.enum_st()
             self.defs()
         else:
             pass
@@ -291,6 +304,9 @@ class Parser:
 
     def body(self):
         self.MST()
+    
+    def classBody(self):
+        self.CMST()
 
     def MST(self):
         if (
@@ -303,7 +319,48 @@ class Parser:
         else:
             pass
 
+    def CMST(self):
+        if (
+            self.value_part in KEYWORDS
+            or self.value_part in DATATYPES
+            or self.class_part == "Identifier"
+        ):
+            self.CST()
+            self.CMST()
+        else:
+            pass
+
     def SST(self):
+        if self.value_part == "func":
+            self.fn_def()
+        elif self.value_part == "when":
+            self.if_else()
+        elif self.value_part == "until":
+            self.while_st()
+        elif self.value_part == "repeat":
+            self.for_st()
+        elif self.class_part == "jump":
+            self.br_cont()
+        elif self.value_part == "return":
+            self.ret()
+        elif self.value_part == "this":
+            self.this_st()
+        elif self.value_part == "try":
+            self.try_catch()
+        elif self.value_part == "enum":
+            self.enum_st()
+        elif self.value_part in ACCESS_MODIFIERS:
+            self.invalid_token()
+        elif self.class_part == "Identifier":
+            self.ids()
+        elif self.value_part =="class":
+            self.invalid_token()
+        elif self.value_part in DATATYPES:
+            self.decl()
+        else:
+            pass
+
+    def CST(self):
         if self.value_part == "func":
             self.fn_def()
         elif self.value_part == "when":
@@ -329,7 +386,7 @@ class Parser:
         elif self.class_part == "Identifier":
             self.ids()
         elif self.value_part in DATATYPES:
-            self.decl()
+            self.invalid_token()
         else:
             pass
 
@@ -362,7 +419,10 @@ class Parser:
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
-                    self.body()
+                    if(self.currentClass is None):
+                        self.body()
+                    else:
+                        self.classBody()
                     if self.value_part == "}":
                         self.increase()
                         self.RemoveFromScope()
@@ -392,7 +452,10 @@ class Parser:
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
-                    self.body()
+                    if(self.currentClass is None):
+                        self.body()
+                    else:
+                        self.classBody()
                     if self.value_part == "}":
                         self.increase()
                         self.RemoveFromScope()
@@ -413,7 +476,10 @@ class Parser:
         self.ScopeNumber+=1
         if self.value_part == "{":
             self.increase()
-            self.body()
+            if(self.currentClass is None):
+                self.body()
+            else:
+                self.classBody()
             if self.value_part == "}":
                 self.increase()
                 self.RemoveFromScope()
@@ -421,6 +487,30 @@ class Parser:
                 self.closingBraceErr()
         else:
             self.openingBraceErr()
+
+    def attribute_st(self):
+        self.AccessModifier=self.value_part
+        self.increase()
+        if(self.value_part in DATATYPES):
+            self.Type=self.value_part
+            self.increase()
+            if(self.class_part=="Identifier"):
+                self.Name=self.value_part
+                self.insertMT(self.Name,self.Type,self.AccessModifier,self.currentClass)
+                self.increase()
+                if(self.value_part=="="):
+                    self.increase()
+                    self.S()
+                    if self.value_part == ";":
+                        self.increase()
+                    else:
+                        self.SemiColonErr()
+                else:
+                    self.EqualsToErr()
+            else:
+                self.invalid_token()
+        else:
+            self.DataTypeErr()
 
     def while_st(self):
         self.increase()
@@ -432,7 +522,10 @@ class Parser:
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
-                    self.body()
+                    if(self.currentClass is None):
+                        self.body()
+                    else:
+                        self.classBody()
                     if self.value_part == "}":
                         self.increase()
                         self.RemoveFromScope()
@@ -449,6 +542,7 @@ class Parser:
 
     def ids(self):
         self.Type=self.value_part
+        self.classConstructor=self.value_part
         self.increase()
         self.identifier()
 
@@ -479,7 +573,10 @@ class Parser:
                         self.increase()
                         if self.value_part == "{":
                             self.increase()
-                            self.body()
+                            if(self.currentClass is None):
+                                self.body()
+                            else:
+                                 self.classBody()
                             if self.value_part == "}":
                                 self.increase()
                                 self.RemoveFromScope()
@@ -524,7 +621,10 @@ class Parser:
         self.ScopeNumber+=1
         if self.value_part == "{":
             self.increase()
-            self.body()
+            if(self.currentClass is None):
+                self.body()
+            else:
+                self.classBody()
             if self.value_part == "}":
                 self.increase()
                 self.RemoveFromScope()
@@ -544,7 +644,10 @@ class Parser:
                                     self.increase()
                                     if self.value_part == "{":
                                         self.increase()
-                                        self.body()
+                                        if(self.currentClass is None):
+                                            self.body()
+                                        else:
+                                            self.classBody()
                                         if self.value_part == "}":
                                             self.RemoveFromScope()
                                             self.increase()
@@ -573,6 +676,13 @@ class Parser:
         self.increase()
         if self.value_part == "virtual":
             self.increase()
+        if self.value_part in ACCESS_MODIFIERS and self.currentClass is not None:
+            self.AccessModifier=self.value_part
+            self.increase()
+        elif(self.currentClass is not None and self.class_part!="Access_Modifier"):
+            self.accessModiferRequirement()
+        if self.value_part in ACCESS_MODIFIERS and self.currentClass is None:
+            self.invalidModifier()
         if self.value_part in RETURN_TYPES:
             self.Type=self.value_part
             self.increase()
@@ -585,11 +695,17 @@ class Parser:
                     self.increase()
                     self.params()
                     if self.value_part == ")":
-                        self.insertST(self.Name,self.Type,self.ScopeNumber-1)
+                        if(self.currentClass is None):
+                            self.insertST(self.Name,self.Type,self.ScopeNumber-1)
+                        else:
+                            self.insertMT(self.Name,self.Type,self.AccessModifier,self.currentClass)
                         self.increase()
                         if self.value_part == "{":
                             self.increase()
-                            self.body()
+                            if(self.currentClass is None):
+                                self.body()
+                            else:
+                                self.classBody()
                             if self.value_part == "}":
                                 self.RemoveFromScope()
                                 self.increase()
@@ -611,7 +727,9 @@ class Parser:
     def enum_st(self):
         self.increase()
         if self.class_part == "Identifier":
-            self.insertDT(self.value_part,"enum","-","-")
+            self.currentEnum=self.value_part
+            self.insertDT(self.currentEnum,"enum","-","-")
+            print(self.DefinitionTable,"732")
             self.increase()
             if self.value_part == "=":
                 self.increase()
@@ -619,6 +737,7 @@ class Parser:
                     self.key_st()
                     if self.value_part == "}":
                         self.increase()
+                        self.currentEnum=None
                         print("VALID ENUMERATION")
                     else:
                         self.closingBraceErr()
@@ -632,6 +751,7 @@ class Parser:
     def key_st(self):
         self.increase()
         if self.class_part == "Identifier":
+            self.insertMT(self.value_part,"-","-",self.currentEnum)
             self.increase()
             if self.value_part == "=":
                 self.increase()
@@ -654,6 +774,7 @@ class Parser:
 
     def class_dec(self):
         self.increase()
+        self.ScopeNumber+=1
         if(self.value_part in ACCESS_MODIFIERS):
             self.AccessModifier=self.value_part
             self.Type="class"
@@ -663,9 +784,11 @@ class Parser:
             self.PL=[]
             if self.value_part == "{":
                 self.increase()
-                self.body()
+                self.classBody()
                 if self.value_part == "}":
                     self.increase()
+                    self.RemoveFromScope()
+                    self.currentClass=None
                     print("VALID CLASS DECLARATION")
                 else:
                     self.closingBraceErr()
@@ -673,10 +796,12 @@ class Parser:
                 self.openingBraceErr()
         else:
             self.invalid_token()
+   
     def classList(self):
         # self.increase()
         if self.class_part == "Identifier":
             self.Name=self.value_part
+            self.currentClass=self.value_part
             self.classDiv()
         else:
             self.validateVariableName()
@@ -746,21 +871,24 @@ class Parser:
             self.fn_call()
 
     def constructor_def(self):
-        self.params()
-        if self.value_part == ")":
-            self.increase()
-            if self.value_part == "{":
+        if(self.currentClass==self.classConstructor):
+            self.params()
+            if self.value_part == ")":
                 self.increase()
-                self.body()
-                if self.value_part == "}":
+                if self.value_part == "{":
                     self.increase()
-                    print("VALID CONSTRUCTOR")
+                    self.classBody()
+                    if self.value_part == "}":
+                        self.increase()
+                        print("VALID CONSTRUCTOR")
+                    else:
+                        self.closingBraceErr()
                 else:
-                    self.closingBraceErr()
+                    self.openingBraceErr()
             else:
-                self.openingBraceErr()
+                self.closingBracketErr()
         else:
-            self.closingBracketErr()
+            self.invalidClassConstructor(f"Invalid constructor {self.classConstructor} for class {self.currentClass}")
 
     def obj_dec(self):
         # self.increase()
@@ -974,11 +1102,12 @@ class Parser:
                 self.DefinitionTable.append(obj)
             else:
                 exists=True
-                for parent in p:
-                    PDT=self.lookupDT(parent)
-                    if(len(PDT)==0):
-                        exists=False
-                        self.RedeclarationError(f"Parent Class({parent}) for class {n} doesn't exist.")
+                if(p!="-"):
+                    for parent in p:
+                        PDT=self.lookupDT(parent)
+                        if(len(PDT)==0):
+                            exists=False
+                            self.RedeclarationError(f"Parent Class({parent}) for class {n} doesn't exist.")
                 if(exists==True):
                     obj={'Name':n,"Type":t,"AM":a,"Parent":p}
                     self.DefinitionTable.append(obj)
@@ -987,4 +1116,40 @@ class Parser:
 
     def lookupDT(self,n):
         check=list(filter(lambda x:x['Name']==n,self.DefinitionTable))
+        return check
+    
+    def insertMT(self,n,t,a,r):
+        DT=self.lookupMT(n)
+        if(len(DT)==0):
+            if(len(r)==0):
+                obj={'Name':n,"Type":t,"AM":a,"Reference":r}
+                self.MemberTable.append(obj)
+            else:
+                exists=True
+                typeOfParent=None
+                if isinstance(r, list):
+                    typeOfParent="array"
+                elif isinstance(r, str):
+                    typeOfParent="string"
+                if(typeOfParent=="array"):
+                    for parent in r:
+                        PDT=self.lookupDT(parent)
+                        print(PDT,"1130")
+                        if(len(PDT)==0):
+                            exists=False
+                            self.RedeclarationError(f"Parent ({parent}) for {n} doesn't exist.")
+                elif(typeOfParent=="string"):
+                    PDT=self.lookupDT(r)
+                    print(PDT,"1130")
+                    if(len(PDT)==0):
+                        exists=False
+                        self.RedeclarationError(f"Parent ({parent}) for {n} doesn't exist.")
+                if(exists==True):
+                    obj={'Name':n,"Type":t,"AM":a,"Reference":r}
+                    self.MemberTable.append(obj)
+        else:
+            self.RedeclarationError(f"Member of name {n} already exists")
+
+    def lookupMT(self,n):
+        check=list(filter(lambda x:x['Name']==n,self.MemberTable))
         return check
