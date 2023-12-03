@@ -51,17 +51,18 @@ class Parser:
         self.DefinitionTable = []
         self.ScopeNumber = 0
         self.Scope = []
-        self.TestScope=[]
+        self.TestScope = []
         self.Type = None
         self.Name = None
         self.AccessModifier = None
         self.TypeModifier = None
         self.CR = None
         self.PL = []
-        self.ScopeId=0
-        self.currentClass=None
-        self.classConstructor=None
-        self.currentEnum=None
+        self.ScopeId = 0
+        self.currentClass = None
+        self.classConstructor = None
+        self.currentEnum = None
+        self.arrayDimension = 0
 
     def increase(self):
         self.token_index += 1
@@ -125,7 +126,7 @@ class Parser:
     def RedeclarationError(self, message):
         self.raise_error(message)
 
-    def invalidClassConstructor(self,message):
+    def invalidClassConstructor(self, message):
         self.raise_error(message)
 
     def accessModiferRequirement(self):
@@ -133,6 +134,12 @@ class Parser:
 
     def invalidModifier(self):
         self.raise_error(f"Unexpected Access Modifier {self.value_part} for function")
+
+    def invalidMemberAccess(self):
+        self.raise_error(f"{self.value_part} is not a member of {self.currentClass}")
+
+    def invalidAssignment(self):
+        self.raise_error(f"Invalid Assignment")
 
     def Start(self):
         if self.value_part in DEFS:
@@ -146,23 +153,23 @@ class Parser:
                 self.raise_error(
                     f"Main function is expected instead got {self.value_part}"
                 )
-        print(self.Scope,"Scope Table")
-        print(self.DefinitionTable,"Definition Table")
-        print(self.MemberTable,"Member Table")
-        print(self.TestScope,"All")
+        print(self.Scope, "\nScope Table")
+        print(self.DefinitionTable, "\nDefinition Table")
+        print(self.MemberTable, "\nMember Table")
+        print(self.TestScope, "\nWhole Scope Table through out")
 
     def main_func(self):
         print("ENTERED MAIN FUNCTION")
-        self.Type="void"
-        self.Name="main"
-        self.ScopeNumber+=1
+        self.Type = "void"
+        self.Name = "main"
+        self.ScopeNumber += 1
         # self.ScopeId+=1
         if self.value_part == "(":
             self.increase()
             self.args()
             if self.value_part == ")":
-                self.insertST(self.Name,self.Type,self.ScopeNumber-1)
-                
+                self.insertST(self.Name, self.Type, self.ScopeNumber - 1)
+
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
@@ -201,9 +208,9 @@ class Parser:
     def args(self):
         if self.class_part == "Identifier" or self.class_part in CONST:
             if "->" not in self.Type:
-                self.Type=self.Type+"->"+self.value_part
+                self.Type = self.Type + "->" + self.value_part
             else:
-                self.Type=self.Type+","+self.value_part
+                self.Type = self.Type + "," + self.value_part
             self.increase()
             if self.value_part == ",":
                 self.increase()
@@ -234,14 +241,14 @@ class Parser:
     def params(self):
         if self.value_part in DATATYPES or self.class_part == "Identifier":
             if "->" not in self.Type:
-                self.Type=self.Type+"->"+self.value_part
+                self.Type = self.Type + "->" + self.value_part
             else:
-                self.Type=self.Type+","+self.value_part
-            CurrentParamType=self.value_part
+                self.Type = self.Type + "," + self.value_part
+            CurrentParamType = self.value_part
             self.increase()
             if self.class_part == "Identifier":
-                CurrentParamName=self.value_part
-                self.insertST(CurrentParamName,CurrentParamType,self.ScopeNumber)
+                CurrentParamName = self.value_part
+                self.insertST(CurrentParamName, CurrentParamType, self.ScopeNumber)
                 self.increase()
                 self.mul_params()
             else:
@@ -257,7 +264,7 @@ class Parser:
             pass
 
     def searchParents(self):
-        if self.class_part=="Identifier":
+        if self.class_part == "Identifier":
             self.PL.append(self.value_part)
             self.increase()
             self.mul_searchParents()
@@ -265,10 +272,11 @@ class Parser:
             pass
 
     def mul_searchParents(self):
-        if(self.value_part==","):
+        if self.value_part == ",":
             self.increase()
             self.searchParents()
-        else:pass
+        else:
+            pass
 
     def decl(self):
         if self.value_part in DATATYPES:
@@ -276,8 +284,8 @@ class Parser:
             self.increase()
             if self.class_part == "Identifier":
                 self.Name = self.value_part
-                self.insertST(self.Name,self.Type,self.ScopeNumber)
-                
+                self.insertST(self.Name, self.Type, self.ScopeNumber)
+
                 self.increase()
                 self.init()
                 self.mul_decl()
@@ -304,7 +312,7 @@ class Parser:
 
     def body(self):
         self.MST()
-    
+
     def classBody(self):
         self.CMST()
 
@@ -353,7 +361,7 @@ class Parser:
             self.invalid_token()
         elif self.class_part == "Identifier":
             self.ids()
-        elif self.value_part =="class":
+        elif self.value_part == "class":
             self.invalid_token()
         elif self.value_part in DATATYPES:
             self.decl()
@@ -395,15 +403,19 @@ class Parser:
         if self.value_part == ".":
             self.increase()
             if self.class_part == "Identifier":
-                self.increase()
-                if self.value_part == "=":
+                RMT = self.lookupMT(self.value_part)
+                if len(RMT) != 0:
                     self.increase()
-                    self.S()
-                    if self.value_part == ";":
+                    if self.value_part == "=":
                         self.increase()
-                        print("VALID THIS STATEMENT")
+                        self.S()
+                        if self.value_part == ";":
+                            self.increase()
+                            print("VALID THIS STATEMENT")
+                    else:
+                        self.EqualsToErr()
                 else:
-                    self.EqualsToErr()
+                    self.invalidMemberAccess()
             else:
                 self.invalidArgumentErr()
         else:
@@ -411,7 +423,7 @@ class Parser:
 
     def if_else(self):
         self.increase()
-        self.ScopeNumber+=1
+        self.ScopeNumber += 1
         if self.value_part == "(":
             self.increase()
             self.S()
@@ -419,7 +431,7 @@ class Parser:
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
-                    if(self.currentClass is None):
+                    if self.currentClass is None:
                         self.body()
                     else:
                         self.classBody()
@@ -444,7 +456,7 @@ class Parser:
             self.openingBracketErr()
 
     def either(self):
-        self.ScopeNumber+=1
+        self.ScopeNumber += 1
         if self.value_part == "(":
             self.increase()
             self.S()
@@ -452,7 +464,7 @@ class Parser:
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
-                    if(self.currentClass is None):
+                    if self.currentClass is None:
                         self.body()
                     else:
                         self.classBody()
@@ -473,10 +485,10 @@ class Parser:
             self.openingBracketErr()
 
     def otherwise(self):
-        self.ScopeNumber+=1
+        self.ScopeNumber += 1
         if self.value_part == "{":
             self.increase()
-            if(self.currentClass is None):
+            if self.currentClass is None:
                 self.body()
             else:
                 self.classBody()
@@ -489,16 +501,18 @@ class Parser:
             self.openingBraceErr()
 
     def attribute_st(self):
-        self.AccessModifier=self.value_part
+        self.AccessModifier = self.value_part
         self.increase()
-        if(self.value_part in DATATYPES):
-            self.Type=self.value_part
+        if self.value_part in DATATYPES:
+            self.Type = self.value_part
             self.increase()
-            if(self.class_part=="Identifier"):
-                self.Name=self.value_part
-                self.insertMT(self.Name,self.Type,self.AccessModifier,self.currentClass)
+            if self.class_part == "Identifier":
+                self.Name = self.value_part
+                self.insertMT(
+                    self.Name, self.Type, self.AccessModifier, self.currentClass
+                )
                 self.increase()
-                if(self.value_part=="="):
+                if self.value_part == "=":
                     self.increase()
                     self.S()
                     if self.value_part == ";":
@@ -514,7 +528,7 @@ class Parser:
 
     def while_st(self):
         self.increase()
-        self.ScopeNumber+=1
+        self.ScopeNumber += 1
         if self.value_part == "(":
             self.increase()
             self.S()
@@ -522,7 +536,7 @@ class Parser:
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
-                    if(self.currentClass is None):
+                    if self.currentClass is None:
                         self.body()
                     else:
                         self.classBody()
@@ -541,8 +555,8 @@ class Parser:
             self.openingBracketErr()
 
     def ids(self):
-        self.Type=self.value_part
-        self.classConstructor=self.value_part
+        self.Type = self.value_part
+        self.classConstructor = self.value_part
         self.increase()
         self.identifier()
 
@@ -560,7 +574,7 @@ class Parser:
 
     def for_st(self):
         self.increase()
-        self.ScopeNumber+=1
+        self.ScopeNumber += 1
         if self.value_part == "(":
             self.increase()
             if self.value_part == "num":
@@ -573,10 +587,10 @@ class Parser:
                         self.increase()
                         if self.value_part == "{":
                             self.increase()
-                            if(self.currentClass is None):
+                            if self.currentClass is None:
                                 self.body()
                             else:
-                                 self.classBody()
+                                self.classBody()
                             if self.value_part == "}":
                                 self.increase()
                                 self.RemoveFromScope()
@@ -618,10 +632,10 @@ class Parser:
 
     def try_catch(self):
         self.increase()
-        self.ScopeNumber+=1
+        self.ScopeNumber += 1
         if self.value_part == "{":
             self.increase()
-            if(self.currentClass is None):
+            if self.currentClass is None:
                 self.body()
             else:
                 self.classBody()
@@ -630,21 +644,23 @@ class Parser:
                 self.RemoveFromScope()
                 if self.value_part == "catch":
                     self.increase()
-                    self.ScopeNumber+=1
+                    self.ScopeNumber += 1
                     if self.value_part == "(":
                         self.increase()
-                        if(self.class_part=="DataType"):
-                            self.Type=self.value_part
+                        if self.class_part == "DataType":
+                            self.Type = self.value_part
                             self.increase()
                             if self.class_part == "Identifier":
-                                self.Name=self.value_part
+                                self.Name = self.value_part
                                 self.increase()
                                 if self.value_part == ")":
-                                    self.insertST(self.Name,self.Type,self.ScopeNumber)
+                                    self.insertST(
+                                        self.Name, self.Type, self.ScopeNumber
+                                    )
                                     self.increase()
                                     if self.value_part == "{":
                                         self.increase()
-                                        if(self.currentClass is None):
+                                        if self.currentClass is None:
                                             self.body()
                                         else:
                                             self.classBody()
@@ -677,32 +693,37 @@ class Parser:
         if self.value_part == "virtual":
             self.increase()
         if self.value_part in ACCESS_MODIFIERS and self.currentClass is not None:
-            self.AccessModifier=self.value_part
+            self.AccessModifier = self.value_part
             self.increase()
-        elif(self.currentClass is not None and self.class_part!="Access_Modifier"):
+        elif self.currentClass is not None and self.class_part != "Access_Modifier":
             self.accessModiferRequirement()
         if self.value_part in ACCESS_MODIFIERS and self.currentClass is None:
             self.invalidModifier()
         if self.value_part in RETURN_TYPES:
-            self.Type=self.value_part
+            self.Type = self.value_part
             self.increase()
             if self.class_part == "Identifier":
-                self.Name=self.value_part
+                self.Name = self.value_part
                 self.increase()
-                self.ScopeId+=1
-                self.ScopeNumber+=1
+                self.ScopeId += 1
+                self.ScopeNumber += 1
                 if self.value_part == "(":
                     self.increase()
                     self.params()
                     if self.value_part == ")":
-                        if(self.currentClass is None):
-                            self.insertST(self.Name,self.Type,self.ScopeNumber-1)
+                        if self.currentClass is None:
+                            self.insertST(self.Name, self.Type, self.ScopeNumber - 1)
                         else:
-                            self.insertMT(self.Name,self.Type,self.AccessModifier,self.currentClass)
+                            self.insertMT(
+                                self.Name,
+                                self.Type,
+                                self.AccessModifier,
+                                self.currentClass,
+                            )
                         self.increase()
                         if self.value_part == "{":
                             self.increase()
-                            if(self.currentClass is None):
+                            if self.currentClass is None:
                                 self.body()
                             else:
                                 self.classBody()
@@ -727,9 +748,8 @@ class Parser:
     def enum_st(self):
         self.increase()
         if self.class_part == "Identifier":
-            self.currentEnum=self.value_part
-            self.insertDT(self.currentEnum,"enum","-","-")
-            print(self.DefinitionTable,"732")
+            self.currentEnum = self.value_part
+            self.insertDT(self.currentEnum, "enum", "-", "-")
             self.increase()
             if self.value_part == "=":
                 self.increase()
@@ -737,7 +757,7 @@ class Parser:
                     self.key_st()
                     if self.value_part == "}":
                         self.increase()
-                        self.currentEnum=None
+                        self.currentEnum = None
                         print("VALID ENUMERATION")
                     else:
                         self.closingBraceErr()
@@ -751,7 +771,7 @@ class Parser:
     def key_st(self):
         self.increase()
         if self.class_part == "Identifier":
-            self.insertMT(self.value_part,"-","-",self.currentEnum)
+            self.insertMT(self.value_part, "-", "-", self.currentEnum)
             self.increase()
             if self.value_part == "=":
                 self.increase()
@@ -774,21 +794,21 @@ class Parser:
 
     def class_dec(self):
         self.increase()
-        self.ScopeNumber+=1
-        if(self.value_part in ACCESS_MODIFIERS):
-            self.AccessModifier=self.value_part
-            self.Type="class"
+        self.ScopeNumber += 1
+        if self.value_part in ACCESS_MODIFIERS:
+            self.AccessModifier = self.value_part
+            self.Type = "class"
             self.increase()
             self.classList()
-            self.insertDT(self.Name,self.Type,self.AccessModifier,self.PL)
-            self.PL=[]
+            self.insertDT(self.Name, self.Type, self.AccessModifier, self.PL)
+            self.PL = []
             if self.value_part == "{":
                 self.increase()
                 self.classBody()
                 if self.value_part == "}":
                     self.increase()
                     self.RemoveFromScope()
-                    self.currentClass=None
+                    self.currentClass = None
                     print("VALID CLASS DECLARATION")
                 else:
                     self.closingBraceErr()
@@ -796,12 +816,12 @@ class Parser:
                 self.openingBraceErr()
         else:
             self.invalid_token()
-   
+
     def classList(self):
         # self.increase()
         if self.class_part == "Identifier":
-            self.Name=self.value_part
-            self.currentClass=self.value_part
+            self.Name = self.value_part
+            self.currentClass = self.value_part
             self.classDiv()
         else:
             self.validateVariableName()
@@ -826,7 +846,7 @@ class Parser:
         self.increase()
         if self.value_part == ")":
             self.increase()
-            
+
         elif self.class_part == "Identifier":
             # self.increase()
             self.searchParents()
@@ -871,7 +891,7 @@ class Parser:
             self.fn_call()
 
     def constructor_def(self):
-        if(self.currentClass==self.classConstructor):
+        if self.currentClass == self.classConstructor:
             self.params()
             if self.value_part == ")":
                 self.increase()
@@ -888,14 +908,16 @@ class Parser:
             else:
                 self.closingBracketErr()
         else:
-            self.invalidClassConstructor(f"Invalid constructor {self.classConstructor} for class {self.currentClass}")
+            self.invalidClassConstructor(
+                f"Invalid constructor {self.classConstructor} for class {self.currentClass}"
+            )
 
     def obj_dec(self):
         # self.increase()
         if self.class_part == "Identifier":
-            self.Name=self.value_part
+            self.Name = self.value_part
             self.increase()
-            self.insertST(self.Name,self.Type,self.ScopeNumber)
+            self.insertST(self.Name, self.Type, self.ScopeNumber)
             if self.value_part == "=":
                 self.increase()
                 if self.value_part in KEYWORDS:
@@ -940,6 +962,7 @@ class Parser:
             or self.value_part == "!"
             or self.class_part in CONST
             or self.class_part == "Identifier"
+            or self.value_part == "this"
         ):
             self.AE()
             self.OE1()
@@ -1006,7 +1029,7 @@ class Parser:
 
     def F(self):
         if self.class_part == "Identifier":
-            self.increase()
+            # self.increase()
             self.dot()
         elif self.class_part in CONST:
             self.increase()
@@ -1016,21 +1039,26 @@ class Parser:
         elif self.value_part == "!":
             self.increase()
             self.F()
+        elif self.value_part == "this":
+            self.this_st()
         else:
             self.invalidArgumentErr()
 
     def dot(self):
-        if self.value_part == ".":
+        if self.next_token == ".":
+            self.increase()
             self.increase()
             if self.class_part == "Identifier":
                 self.increase()
                 self.dot()
             else:
                 self.invalid_token()
-        elif self.value_part == "(":
+        elif self.next_token == "(":
+            self.increase()
             self.increase()
             self.new_bracket()
-        elif self.value_part == "[":
+        elif self.next_token == "[":
+            self.increase()
             self.increase()
             self.S()
             if self.value_part == "]":
@@ -1045,7 +1073,11 @@ class Parser:
             else:
                 self.indexationError("]")
         else:
-            pass
+            ST=self.lookupST(self.value_part)
+            if(ST is not False):
+                self.increase()
+            else:
+                self.invalidAssignment()
 
     def new_bracket(self):
         if self.class_part == "DataType":
@@ -1083,73 +1115,96 @@ class Parser:
         currentScopeObjs = list(filter(lambda x: x["ScopeId"] == s, self.Scope))
         checkByName = list(filter(lambda y: y["Name"] == n, currentScopeObjs))
         if len(checkByName) == 0:
-            obj = {"Name": n, "Type": t, "ScopeId": s, "ParentScopeId": s-1 if((s - 1)>-1) else None}
+            obj = {
+                "Name": n,
+                "Type": t,
+                "ScopeId": s,
+                "ParentScopeId": s - 1 if ((s - 1) > -1) else None,
+            }
             self.Scope.append(obj)
             self.TestScope.append(obj)
         else:
             self.RedeclarationError(f"Variable {n} already exists in scope {s}")
 
     def RemoveFromScope(self):
-        filteredScopeTb=list(filter(lambda x:x["ScopeId"]!=self.ScopeNumber,self.Scope))
-        self.ScopeNumber-=1
-        self.Scope=filteredScopeTb
+        filteredScopeTb = list(
+            filter(lambda x: x["ScopeId"] != self.ScopeNumber, self.Scope)
+        )
+        self.ScopeNumber -= 1
+        self.Scope = filteredScopeTb
 
-    def insertDT(self,n,t,a,p):
-        DT=self.lookupDT(n)
-        if(len(DT)==0):
-            if(len(p)==0):
-                obj={'Name':n,"Type":t,"AM":a,"Parent":p}
+    def insertDT(self, n, t, a, p):
+        DT = self.lookupDT(n)
+        if len(DT) == 0:
+            if len(p) == 0:
+                obj = {"Name": n, "Type": t, "AM": a, "Parent": p}
                 self.DefinitionTable.append(obj)
             else:
-                exists=True
-                if(p!="-"):
+                exists = True
+                if p != "-":
                     for parent in p:
-                        PDT=self.lookupDT(parent)
-                        if(len(PDT)==0):
-                            exists=False
-                            self.RedeclarationError(f"Parent Class({parent}) for class {n} doesn't exist.")
-                if(exists==True):
-                    obj={'Name':n,"Type":t,"AM":a,"Parent":p}
+                        PDT = self.lookupDT(parent)
+                        if len(PDT) == 0:
+                            exists = False
+                            self.RedeclarationError(
+                                f"Parent Class({parent}) for class {n} doesn't exist."
+                            )
+                if exists == True:
+                    obj = {"Name": n, "Type": t, "AM": a, "Parent": p}
                     self.DefinitionTable.append(obj)
         else:
             self.RedeclarationError(f"Class/Enum of name {n} already exists")
 
-    def lookupDT(self,n):
-        check=list(filter(lambda x:x['Name']==n,self.DefinitionTable))
+    def lookupDT(self, n):
+        check = list(filter(lambda x: x["Name"] == n, self.DefinitionTable))
         return check
-    
-    def insertMT(self,n,t,a,r):
-        DT=self.lookupMT(n)
-        if(len(DT)==0):
-            if(len(r)==0):
-                obj={'Name':n,"Type":t,"AM":a,"Reference":r}
+
+    def insertMT(self, n, t, a, r):
+        DT = self.lookupMT(n)
+        if len(DT) == 0:
+            if len(r) == 0:
+                obj = {"Name": n, "Type": t, "AM": a, "Reference": r}
                 self.MemberTable.append(obj)
             else:
-                exists=True
-                typeOfParent=None
+                exists = True
+                typeOfParent = None
                 if isinstance(r, list):
-                    typeOfParent="array"
+                    typeOfParent = "array"
                 elif isinstance(r, str):
-                    typeOfParent="string"
-                if(typeOfParent=="array"):
+                    typeOfParent = "string"
+                if typeOfParent == "array":
                     for parent in r:
-                        PDT=self.lookupDT(parent)
-                        print(PDT,"1130")
-                        if(len(PDT)==0):
-                            exists=False
-                            self.RedeclarationError(f"Parent ({parent}) for {n} doesn't exist.")
-                elif(typeOfParent=="string"):
-                    PDT=self.lookupDT(r)
-                    print(PDT,"1130")
-                    if(len(PDT)==0):
-                        exists=False
-                        self.RedeclarationError(f"Parent ({parent}) for {n} doesn't exist.")
-                if(exists==True):
-                    obj={'Name':n,"Type":t,"AM":a,"Reference":r}
+                        PDT = self.lookupDT(parent)
+                        if len(PDT) == 0:
+                            exists = False
+                            self.RedeclarationError(
+                                f"Parent ({parent}) for {n} doesn't exist."
+                            )
+                elif typeOfParent == "string":
+                    PDT = self.lookupDT(r)
+                    if len(PDT) == 0:
+                        exists = False
+                        self.RedeclarationError(
+                            f"Parent ({parent}) for {n} doesn't exist."
+                        )
+                if exists == True:
+                    obj = {"Name": n, "Type": t, "AM": a, "Reference": r}
                     self.MemberTable.append(obj)
         else:
             self.RedeclarationError(f"Member of name {n} already exists")
 
-    def lookupMT(self,n):
-        check=list(filter(lambda x:x['Name']==n,self.MemberTable))
+    def lookupMT(self, n):
+        check = list(filter(lambda x: x["Name"] == n, self.MemberTable))
         return check
+
+    def lookupST(self,current):
+        scopeLimit=self.ScopeNumber
+        ST=None
+        while(scopeLimit is not None):
+            ST=list(filter(lambda x: x["ScopeId"] == scopeLimit, self.Scope))
+            if(len(ST)!=0):
+                for name in ST:
+                    if(name["Name"]==current):
+                        return name
+            scopeLimit =scopeLimit-1 if(scopeLimit>=0) else None
+        return False
