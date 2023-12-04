@@ -1,6 +1,6 @@
-char x= 'c' ;
-func virtual void hsdhs(num a,num b,bool q){return a+b;}
-num a=hsdhs(1,2,False);
+#char x= 'c' ;
+#func virtual void hsdhs(num a,num b,bool q){return a+b;}
+#num aasasas = hsdhs(1,2,False);
 #string z=x;
 #fp s=23.2;
 #bool x=a <= 3;
@@ -13,7 +13,7 @@ class public A(){
     num q=0;
     num p=0;
     func virtual public string add(num a,num b){return q+p;}
-    #string sajk=this.add(q,p) ;
+    string sajk=this.add(1,2);
     A(){
         this.x=False;
     }
@@ -33,7 +33,7 @@ void main(){
         string c="2";
         c=0;
     }
-    repeat(num i=0;i<=6;i=i + 1){}
+    #repeat(num i=0;i<=6;i=i + 1){}
     #return a <= 3;
     #until(a <= 3){break;}
     /*num a=3;
