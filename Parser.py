@@ -1127,7 +1127,6 @@ class Parser:
 
     def dot(self):
         self.referenceFunction=self.value_part
-        print(self.referenceFunction,1133)
         if self.next_token == ".":
             self.increase()
             self.increase()
@@ -1182,7 +1181,6 @@ class Parser:
             self.dot()
         else:
             self.fn_call()
-            print(self.value_part,1167)
             self.dot()
 
     def Dim(self):

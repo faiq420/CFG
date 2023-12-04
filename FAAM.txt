@@ -1,11 +1,10 @@
-#char x= 'c' ;
-#func virtual void hsdhs(num a,num b,bool q){return a+b;}
-#num aasasas = hsdhs(1,2,False);
-#string z=x;
-#fp s=23.2;
-#bool x=a <= 3;
-#func virtual void add(num a,num b,W x){return a+b;}
-#public num kasja=1;
+char x= 'c' ;
+func virtual void hsdhs(num a,num b,bool q){return a+b;}
+num aasasas = hsdhs(1,2,False);
+string z=x;
+fp s=23.2;
+bool dqwbjd=a <= 3;
+func virtual void add(num a,num b,W x){return a+b;}
 class public A(){
     private string rand="sa";
     public bool x=False;
@@ -21,11 +20,11 @@ class public A(){
 }
 class public B(A){}
 void main(){
-    #fp floatingPt=-0.00;
+    fp floatingPt=-0.00;
     
     func virtual void sub(num a,num b,W x){return a+b;}
-    /*num a=!s;
-    bool x=False;*/
+    num a=!s;
+    bool x=False;
     try{
         string a="Any";
     }catch(string e){
@@ -36,7 +35,7 @@ void main(){
     #repeat(num i=0;i<=6;i=i + 1){}
     #return a <= 3;
     #until(a <= 3){break;}
-    /*num a=3;
+    num ehufen=3;
     when(a <= 3){
         bool x=a <= 3;
     }either(a <= 3){
@@ -45,8 +44,8 @@ void main(){
         bool x=a <= 3;
     }otherwise{
         bool x=a <= 3;
-    }*/
-    /*enum TextStyle ={
+    }
+    enum TextStyle ={
     ITALICS = 1,
     BOLD = 2,
     UNDERLINE = 4
@@ -54,8 +53,6 @@ void main(){
     enum random={
         CHECK=1,
         ASA=2
-    }*/
-    #this.y=a <= 3;
-    #this.x=b <= 3;
+    }
 }
-#num a=!s;
+num a=!s;
