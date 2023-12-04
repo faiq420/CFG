@@ -1,13 +1,18 @@
-#char x= 'c' ;
+char x= 'c' ;
 #num a=a(1,2,False,e);
-#string z=1;
+string z=x;
 #fp s=23.2;
 #bool x=a <= 3;
 #func virtual void add(num a,num b,W x){return a+b;}
+#public num kasja=1;
 /*class public A(){
+    private string rand="sa";
+    public bool x=False;
+    this.rand=1;
     A(){
         this.x=False;
     }
+    func virtual public void add(num a,num b,W x){return a+b;}
 }
 class public B(A){}*/
 void main(){
@@ -19,11 +24,13 @@ void main(){
         string a="Any";
     }catch(string e){
         fp s=23.2;
+        c=0;
     }
-    #repeat(num i=0;i<=6;i=i + 1){}
+    repeat(num i=0;i<=6;i=i + 1){}
     #return a <= 3;
     #until(a <= 3){break;}
-    /*when(a <= 3){
+    /*num a=3;
+    when(a <= 3){
         bool x=a <= 3;
     }either(a <= 3){
         bool x=a <= 3;
@@ -43,6 +50,5 @@ void main(){
     }*/
     #this.y=a <= 3;
     #this.x=b <= 3;
-
 }
 #num a=!s;
