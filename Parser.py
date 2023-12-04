@@ -562,6 +562,10 @@ class Parser:
     def ids(self):
         self.Type = self.value_part
         self.classConstructor = self.value_part
+        if(self.next_token=="="):
+            ST=self.lookupST(self.value_part)
+            if(ST==False):
+                self.invalidAssignment()
         self.increase()
         self.identifier()
 
@@ -871,7 +875,6 @@ class Parser:
             self.indexationError()
 
     def assign_st(self):
-        self.increase()
         if self.value_part == "=":
             self.increase()
             self.S()
