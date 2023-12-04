@@ -30,8 +30,7 @@ ACCESS_MODIFIERS = ["private", "public"]
 PM = ["+", "-"]
 MD = ["*", "/"]
 LOGICAL_OPERATORS = ["&&", "||"]
-TEMPVAL = {}
-CLASSES = []
+CONST_EQUIVALENT_DT={'int_const':'num','FP_const':'fp','str_const':'string','bool_const':'bool','char_const':'char'}
 
 
 class Parser:
@@ -60,9 +59,11 @@ class Parser:
         self.PL = []
         self.ScopeId = 0
         self.currentClass = None
+        self.CCR=None
         self.classConstructor = None
         self.currentEnum = None
         self.arrayDimension = 0
+        self.referenceFunction=None
 
     def increase(self):
         self.token_index += 1
@@ -144,6 +145,9 @@ class Parser:
     def mainFunctionMissing(self):
         raise SyntaxError(f"Main Function is not present")
 
+    def unAssignedParameter(self,n):
+        self.raise_error(f"Parameter {n} is not declared")
+
     def Start(self):
         if self.value_part in DEFS:
             self.defs()
@@ -211,11 +215,31 @@ class Parser:
             pass
 
     def args(self):
-        if self.class_part == "Identifier" or self.class_part in CONST:
-            if "->" not in self.Type:
-                self.Type = self.Type + "->" + self.value_part
+        print(self.Type,215)
+        if self.class_part == "Identifier":
+            print(self.value_part,217)
+            ST=self.lookupST(self.value_part)
+            print(ST,218)
+            if(ST!=False):
+                if "->" not in self.Type:
+                    self.Type = self.Type + "->" + ST["Type"]
+                else:
+                    self.Type = self.Type + "," + ST["Type"]
             else:
-                self.Type = self.Type + "," + self.value_part
+                self.unAssignedParameter(self.value_part)
+            self.increase()
+            if self.value_part == ",":
+                self.increase()
+                self.mul_args()
+            else:
+                pass
+        elif self.class_part in CONST:
+            print(self.value_part,237)
+            CT=CONST_EQUIVALENT_DT[self.class_part]
+            if "->" not in self.Type:
+                self.Type = self.Type + "->" + CT
+            else:
+                self.Type = self.Type + "," + CT
             self.increase()
             if self.value_part == ",":
                 self.increase()
@@ -230,13 +254,9 @@ class Parser:
             pass
 
     def mul_args(self):
+        print(self.value_part,257)
         if self.class_part == "Identifier" or self.class_part in CONST:
-            self.increase()
-            if self.value_part == ",":
-                self.increase()
-                self.mul_args()
-            else:
-                pass
+            self.args()
         elif self.next_token == ")":
             self.increase()
             pass
@@ -399,7 +419,7 @@ class Parser:
         elif self.class_part == "Identifier":
             self.ids()
         elif self.value_part in DATATYPES:
-            self.invalid_token()
+            self.decl()
         else:
             pass
 
@@ -407,6 +427,15 @@ class Parser:
         self.increase()
         if self.value_part == ".":
             self.increase()
+            self.this_st_ext()
+            if(self.value_part==';'):
+                self.increase()
+                print("VALID THIS STATEMENT")
+        else:
+            self.invalid_token()
+
+    def this_st_ext(self):
+        if(self.next_token=="="):
             if self.class_part == "Identifier":
                 RMT = self.lookupMT(self.value_part)
                 if len(RMT) != 0:
@@ -414,17 +443,25 @@ class Parser:
                     if self.value_part == "=":
                         self.increase()
                         self.S()
-                        if self.value_part == ";":
-                            self.increase()
-                            print("VALID THIS STATEMENT")
+                        self.this_st_ext()
                     else:
                         self.EqualsToErr()
                 else:
                     self.invalidMemberAccess()
             else:
                 self.invalidArgumentErr()
-        else:
-            self.invalid_token()
+        elif(self.value_part==';'):
+           pass
+        elif(self.next_token=='('):
+            self.referenceFunction=self.value_part
+            self.CCR=self.currentClass
+            self.increase()
+            self.increase()
+            self.fn_call()
+            self.dot()
+            print(self.value_part,445)
+            self.this_st_ext()
+            self.CCR=None
 
     def if_else(self):
         self.increase()
@@ -564,8 +601,6 @@ class Parser:
         self.classConstructor = self.value_part
         if(self.next_token=="="):
             ST=self.lookupST(self.value_part)
-            if(ST==False):
-                self.invalidAssignment()
         self.increase()
         self.identifier()
 
@@ -894,20 +929,27 @@ class Parser:
             flag += 1
             flagVariable = self.tokens[flag].get("value_part")
         if self.tokens[flag + 1].get("value_part") == "{":
+            self.ScopeNumber+=1
+            # self.increase()
             self.constructor_def()
         else:
+            # self.increase()
             self.fn_call()
 
     def constructor_def(self):
         if self.currentClass == self.classConstructor:
             self.params()
             if self.value_part == ")":
+                self.insertMT(
+                    self.currentClass, "void", "public", self.currentClass
+                )
                 self.increase()
                 if self.value_part == "{":
                     self.increase()
                     self.classBody()
                     if self.value_part == "}":
                         self.increase()
+                        self.RemoveFromScope()
                         print("VALID CONSTRUCTOR")
                     else:
                         self.closingBraceErr()
@@ -955,6 +997,7 @@ class Parser:
 
     def fn_call(self):
         self.args()
+        print(self.Type,981)
         if self.value_part == ")":
             self.increase()
             if self.value_part == ";":
@@ -964,7 +1007,7 @@ class Parser:
         else:
             self.closingBracketErr()
 
-    def S(self):
+    def S(self): 
         if (
             self.value_part == "("
             or self.value_part == "!"
@@ -974,7 +1017,6 @@ class Parser:
         ):
             self.AE()
             self.OE1()
-
             print("VALID EXPRRESSION")
         else:
             self.invalidArgumentErr()
@@ -1053,6 +1095,8 @@ class Parser:
             self.invalidArgumentErr()
 
     def dot(self):
+        self.referenceFunction=self.value_part
+        print(self.value_part,1098)
         if self.next_token == ".":
             self.increase()
             self.increase()
@@ -1081,11 +1125,25 @@ class Parser:
             else:
                 self.indexationError("]")
         else:
-            ST=self.lookupST(self.value_part)
-            if(ST is not False):
-                self.increase()
+            if(self.CCR is None):
+                if("->" in self.Type):
+                    ST=self.lookupFuncST(self.referenceFunction,self.Type)
+                    print(ST,1130)
+                    if(ST is not False):
+                        self.increase()
+                    else:
+                        self.invalidAssignment()
+                else:
+                    ST=self.lookupST(self.value_part)
+                    if(ST is not False):
+                        self.increase()
+                    else:
+                        self.invalidAssignment()
             else:
-                self.invalidAssignment()
+                if(self.currentClass is not None):
+                    RMT=self.LookupFuncMT(self.referenceFunction,self.Type,self.currentClass)
+                    if(len(RMT)==0):
+                        self.invalidAssignment()
 
     def new_bracket(self):
         if self.class_part == "DataType":
@@ -1212,7 +1270,30 @@ class Parser:
             ST=list(filter(lambda x: x["ScopeId"] == scopeLimit, self.Scope))
             if(len(ST)!=0):
                 for name in ST:
-                    if(name["Name"]==current):
+                    if(name["Name"]==current and "->" not in name["Type"]):
                         return name
             scopeLimit =scopeLimit-1 if(scopeLimit>=0) else None
         return False
+    
+    def lookupFuncST(self,current,pl):
+        print(pl.split("->")[1])
+        scopeLimit=self.ScopeNumber
+        ST=None
+        while(scopeLimit is not None):
+            ST=list(filter(lambda x: x["ScopeId"] == scopeLimit, self.Scope))
+            if(len(ST)!=0):
+                for name in ST:
+                    if("->" in name["Type"]):
+                        print(name["Name"],1286)
+                        print(name["Type"].split("->")[1])
+                        if(name["Name"]==current and name["Type"].split("->")[1]==pl.split("->")[1]):
+                            print(name,1288)
+                            return name
+            scopeLimit =scopeLimit-1 if(scopeLimit>=0) else None
+        return False
+    
+    def LookupFuncMT(self,n,pl,r):
+        check = list(filter(lambda x: x["Name"] == n, self.MemberTable))
+        checkByParent=list(filter(lambda x: x["Reference"] == r, check))
+        checkByParams=list(filter(lambda y:y["Type"].split("->")==pl.split("->"),checkByParent))
+        return checkByParams
