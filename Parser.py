@@ -141,6 +141,9 @@ class Parser:
     def invalidAssignment(self):
         self.raise_error(f"Invalid Assignment")
 
+    def mainFunctionMissing(self):
+        raise SyntaxError(f"Main Function is not present")
+
     def Start(self):
         if self.value_part in DEFS:
             self.defs()
@@ -153,6 +156,8 @@ class Parser:
                 self.raise_error(
                     f"Main function is expected instead got {self.value_part}"
                 )
+        else:
+            self.mainFunctionMissing()
         print(self.Scope, "\nScope Table")
         print(self.DefinitionTable, "\nDefinition Table")
         print(self.MemberTable, "\nMember Table")
