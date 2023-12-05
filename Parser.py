@@ -161,6 +161,12 @@ class Parser:
     def unAssignedParameter(self,n):
         self.raise_error(f"Parameter {n} is not declared")
 
+    def TypeMismatch(self):
+        self.raise_error(f"Type of {self.value_part} does not match the type of variable {self.Name}")
+
+    def voidReturnTypeError(self):
+        self.raise_error(f"Function {self.Name} is void hence can not return expression")
+
     def Start(self):
         if self.value_part in DEFS:
             self.defs()
@@ -670,7 +676,10 @@ class Parser:
     def ret(self):
         self.increase()
         if self.value_part != ";":
-            self.S()
+            if("->" in self.Type and self.Type.split("->")[0]=="void"):
+                self.voidReturnTypeError()
+            else:
+                self.S()
             if self.value_part == ";":
                 self.increase()
                 print("VALID RETURN STATEMENT")
@@ -1112,7 +1121,10 @@ class Parser:
             # print(self.value_part,1083)
             self.dot()
         elif self.class_part in CONST:
-            self.increase()
+            if(self.Type==CONST_EQUIVALENT_DT[self.class_part]):
+                self.increase()
+            else:
+                self.TypeMismatch()
             # print(self.value_part,1099)
         elif self.value_part == "(":
             self.increase()
