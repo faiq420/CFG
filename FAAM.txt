@@ -1,43 +1,43 @@
 /*char x= 'c' ;
-func virtual void hsdhs(num a,num b,bool q){return a+b;}
+func virtual void hsdhs(num a,num b,bool q){return;}
 num aasasas = hsdhs(1,2,False);
 string z="x";
 fp s=23.2;
-bool dqwbjd= a <= 3;
-func virtual void add(num a,num b,W x){return a+b;}
+#bool dqwbjd= a <= 3;
+#func virtual num add(num a,num b,W x){return a+b;}*/
 class public A(){
     private string rand="sa";
     public bool x=False;
-    this.rand=1;
+    #this.rand="3";
     num q=0;
     num p=0;
-    func virtual public string add(num a,num b){return q+p;}
-    string sajk=this.add(1,2);
+    #func virtual public string add(num a,num b){return q+p;}
+    #string sajk=this.add(1,2);
     A(){
-        this.x=False;
+       # this.x=False;
     }
 
 }
-class public B(A){}*/
+class public B(A){}
 void main(){
     #fp floatingPt=-0.00;
     num hdjkqwbkj=3;
     num arr [] = [[[0],[hdjkqwbkj]],[0,0]];
-    /*func virtual void sub(num a,num b,W x){return a+b;}
+    #func virtual void sub(num a,num b,W x){return a+b;}
     num a=!s;
     bool x=False;
     try{
         string a="Any";
     }catch(string e){
-        fp s=23.2;
+        #fp s=23.2;
         string c="2";
-        c=0;
+        c="4";
     }
     #repeat(num i=0;i<=6;i=i + 1){}
     #return a <= 3;
     #until(a <= 3){break;}
     num ehufen=3;
-    when(a <= 3){
+   /* when(a <= 3){
         bool x=a <= 3;
     }either(a <= 3){
         bool x=a <= 3;
@@ -45,7 +45,7 @@ void main(){
         bool x=a <= 3;
     }otherwise{
         bool x=a <= 3;
-    }
+    }*/
     enum TextStyle ={
     ITALICS = 1,
     BOLD = 2,
@@ -54,6 +54,6 @@ void main(){
     enum random={
         CHECK=1,
         ASA=2
-    }*/
+    }
 }
 num a=!s;

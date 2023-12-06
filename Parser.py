@@ -129,7 +129,7 @@ class Parser:
     def commaErr(self):
         self.raise_error(f"Expected comma but instead got {self.value_part}")
 
-    def EqualsToErr(self):
+    def AssignmentOpError(self):
         self.raise_error(f"Expected Assignment Operator instead got {self.value_part}")
 
     def invalid_token(self):
@@ -351,7 +351,7 @@ class Parser:
             self.increase()
             self.S()
         else:
-            self.EqualsToErr()
+            self.AssignmentOpError()
 
     def mul_decl(self):
         if(self.value_part not in ";,"):
@@ -464,6 +464,7 @@ class Parser:
             self.invalid_token()
 
     def this_st_ext(self):
+        self.Name=self.value_part
         if(self.next_token=="="):
             if self.class_part == "Identifier":
                 RMT = self.lookupMT(self.value_part)
@@ -474,7 +475,7 @@ class Parser:
                         self.S()
                         self.this_st_ext()
                     else:
-                        self.EqualsToErr()
+                        self.AssignmentOpError()
                 else:
                     self.invalidMemberAccess()
             else:
@@ -591,7 +592,7 @@ class Parser:
                     else:
                         self.SemiColonErr()
                 else:
-                    self.EqualsToErr()
+                    self.AssignmentOpError()
             else:
                 self.invalid_token()
         else:
@@ -630,6 +631,8 @@ class Parser:
         self.classConstructor = self.value_part
         if(self.next_token=="="):
             ST=self.lookupST(self.value_part)
+            if(ST):
+                self.Type=ST["Type"]
         self.increase()
         self.identifier()
 
@@ -641,7 +644,7 @@ class Parser:
                 self.S()
                 print("VALID INCREMENT/DECREMENT")
             else:
-                self.EqualsToErr()
+                self.AssignmentOpError()
         else:
             self.invalidArgumentErr()
 
@@ -842,7 +845,7 @@ class Parser:
                 else:
                     self.openingBraceErr()
             else:
-                self.EqualsToErr()
+                self.AssignmentOpError()
         else:
             self.validateVariableName()
 
@@ -860,7 +863,7 @@ class Parser:
                 else:
                     pass
             else:
-                self.EqualsToErr()
+                self.AssignmentOpError()
         else:
             self.validateVariableName()
 
@@ -953,7 +956,7 @@ class Parser:
             else:
                 self.SemiColonErr()
         else:
-            self.EqualsToErr()
+            self.AssignmentOpError()
 
     def bracket_exp(self):
         self.increase()
@@ -1025,7 +1028,7 @@ class Parser:
                 else:
                     self.invalid_token()
             else:
-                self.EqualsToErr()
+                self.AssignmentOpError()
         else:
             self.validateVariableName()
 
@@ -1186,6 +1189,7 @@ class Parser:
             # print(self.value_part,1083)
             self.dot()
         elif self.class_part in CONST:
+            print(self.Type,190)
             if(self.Type==CONST_EQUIVALENT_DT[self.class_part]):
                 self.increase()
             else:
