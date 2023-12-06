@@ -64,6 +64,7 @@ class Parser:
         self.currentEnum = None
         self.arrayDimension = 0
         self.referenceFunction=None
+        self.isArray=False
 
     def increase(self):
         self.token_index += 1
@@ -265,7 +266,6 @@ class Parser:
                 pass
         elif self.value_part == ")":
             # self.increase()
-            print(self.value_part,262)
             self.Type=None
             pass
         else:
@@ -328,9 +328,18 @@ class Parser:
             if self.class_part == "Identifier":
                 self.Name = self.value_part
                 self.insertST(self.Name, self.Type, self.ScopeNumber)
-
                 self.increase()
+                if(self.value_part=='['):
+                    self.increase()
+                    if(self.value_part==']'):
+                        self.isArray=True
+                        self.increase()
+                    else:
+                        self.indexationError("]")
+                elif(self.value_part!="="):
+                    self.invalid_token()
                 self.init()
+                self.isArray=False
                 self.mul_decl()
             else:
                 self.validateVariableName()
@@ -1045,6 +1054,61 @@ class Parser:
         else:
             self.closingBracketErr()
 
+    def array(self):
+        if(self.value_part=="["):
+            self.increase()
+            self.array_element()
+            if(self.value_part==']'):
+                self.increase()
+            else:
+                self.indexationError("]")
+        else:
+            self.indexationError("[")
+
+    def array_element(self):
+        if(self.value_part=='['):
+            self.array_list()
+        elif(self.class_part in CONST or self.class_part=="Identifier"):
+            self.element_list()
+        else:
+            pass
+
+    def array_list(self):
+        self.array()
+        self.mul_array_list()
+
+    def element_list(self):
+        self.element_list_body()
+        self.mul_element_list()
+
+    def element_list_body(self):
+        if(self.class_part in CONST):
+            if(self.Type==CONST_EQUIVALENT_DT[self.class_part]):
+                self.increase()
+            else:
+                self.TypeMismatch()
+        elif(self.class_part=="Identifier"):
+            ST=self.lookupST(self.value_part)
+            print(ST)
+            if(self.Type==ST["Type"]):
+                self.increase()
+            else:
+                self.TypeMismatch()
+        # else:
+        #     pass
+
+    def mul_element_list(self):
+        if(self.value_part==','):
+            self.increase()
+            self.element_list()
+        else:
+            pass
+
+    def mul_array_list(self):
+        if(self.value_part==','):
+            self.increase()
+            self.array_list()
+
     def S(self): 
         if (
             self.value_part == "("
@@ -1052,6 +1116,7 @@ class Parser:
             or self.class_part in CONST
             or self.class_part == "Identifier"
             or self.value_part == "this"
+            or self.value_part == "["
         ):
             self.AE()
             self.OE1()
@@ -1134,6 +1199,8 @@ class Parser:
             self.F()
         elif self.value_part == "this":
             self.this_st()
+        elif self.value_part == "[":
+            self.array()
         else:
             self.invalidArgumentErr()
 
