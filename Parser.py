@@ -171,6 +171,20 @@ class Parser:
     def voidReturnTypeError(self):
         self.raise_error(f"Function {self.Name} is void hence can not return expression")
 
+    def compatibility_check(self, typeone, typetwo, operator):
+        if typeone == "number" and typetwo == "number":
+            return "number"
+        elif typeone == "string" and typetwo == "char" and operator == "+":
+            return "string"
+        elif typeone == "string" and typetwo == "string" and operator == "+":
+            return "string"
+        elif typeone == "char" and typetwo == "char" and operator == "+":
+            return "string"
+        elif typeone == typetwo and operator == "relational":
+            return "bool"
+        else:
+            self.raise_error(f"Type Error between {typeone} and {typetwo}")
+
     def Start(self):
         if self.value_part in DEFS:
             self.defs()
@@ -185,6 +199,7 @@ class Parser:
                 )
         else:
             self.mainFunctionMissing()
+        print(self.expression,"Expression")
         print(self.Scope, "\nScope Table")
         print(self.DefinitionTable, "\nDefinition Table")
         print(self.MemberTable, "\nMember Table")
@@ -352,7 +367,10 @@ class Parser:
     def init(self):
         if self.value_part == "=":
             self.increase()
+            self.expression = []
             self.S()
+            assignment_type = build_expression_tree_with_types(self.expression)
+            self.expression = []
         else:
             self.AssignmentOpError()
 
@@ -475,7 +493,10 @@ class Parser:
                     self.increase()
                     if self.value_part == "=":
                         self.increase()
+                        self.expression = []
                         self.S()
+                        assignment_type = build_expression_tree_with_types(self.expression)
+                        self.expression = []
                         self.this_st_ext()
                     else:
                         self.AssignmentOpError()
@@ -501,7 +522,11 @@ class Parser:
         self.ScopeNumber += 1
         if self.value_part == "(":
             self.increase()
+            self.expression = []
             self.S()
+            assignment_type = build_expression_tree_with_types(self.expression)
+            self.compatibility_check("bool", assignment_type, "relational")
+            self.expression = []
             if self.value_part == ")":
                 self.increase()
                 if self.value_part == "{":
@@ -534,7 +559,11 @@ class Parser:
         self.ScopeNumber += 1
         if self.value_part == "(":
             self.increase()
+            self.expression = []
             self.S()
+            temp_type = build_expression_tree_with_types(self.expression)
+            self.compatibility_check("bool", temp_type, "relational")
+            self.expression = []
             if self.value_part == ")":
                 self.increase()
                 if self.value_part == "{":
@@ -606,7 +635,11 @@ class Parser:
         self.ScopeNumber += 1
         if self.value_part == "(":
             self.increase()
+            self.expression = []
             self.S()
+            temp_type = build_expression_tree_with_types(self.expression)
+            self.compatibility_check("bool", temp_type, "relational")
+            self.expression = []
             if self.value_part == ")":
                 self.increase()
                 if self.value_part == "{":
@@ -1095,7 +1128,7 @@ class Parser:
                 self.TypeMismatch()
         elif(self.class_part=="Identifier"):
             ST=self.lookupST(self.value_part)
-            print(ST)
+            # print(ST)
             if(self.Type==ST["Type"]):
                 self.increase()
             else:
@@ -1207,6 +1240,9 @@ class Parser:
             self.expression.append(self.value_part)
             self.increase()
             self.S()
+            if(self.value_part==")"):
+                self.expression.append(self.value_part)
+                self.increase()
         elif self.value_part == "!":
             self.expression.append(self.value_part)
             self.increase()
@@ -1219,7 +1255,25 @@ class Parser:
             self.invalidArgumentErr()
 
     def dot(self):
+        print(self.value_part)
         self.referenceFunction=self.value_part
+        print(self.Scope)
+        ST=self.lookupST(self.value_part)
+        print(ST,1262)
+        if(ST!=False):
+            TypeEquivalency=CONST_EQUIVALENT_DT[ST["Type"]]
+            print(TypeEquivalency,1260)
+            if(TypeEquivalency=="num"):
+                self.expression.append("0")
+            elif(TypeEquivalency=="fp"):
+                self.expression.append("0.0")
+            elif(TypeEquivalency=="bool"):
+                self.expression.append("True")
+            elif(TypeEquivalency=="char"):
+                self.expression.append(self.value_part)
+            elif(TypeEquivalency=="string"):
+                self.expression.append(self.value_part)
+
         if self.next_token == ".":
             self.increase()
             self.increase()
@@ -1286,21 +1340,10 @@ class Parser:
                 self.Dim()
             else:
                 self.indexationError("]")
-        # elif(self.next_token!="."):
-        #     self.indexationError("[")
         else:
             pass
 
     def insertST(self, n, t, s):
-        # if(len(self.Scope)==0):
-        #     obj={
-        #         'Name':n,
-        #         'Type':t,
-        #         'ScopeId':s,
-        #         'ParentScopeId':None
-        #     }
-        #     self.Scope.append(obj)
-        # else:
         currentScopeObjs = list(filter(lambda x: x["ScopeId"] == s, self.Scope))
         checkByName = list(filter(lambda y: y["Name"] == n, currentScopeObjs))
         if len(checkByName) == 0:
@@ -1399,7 +1442,6 @@ class Parser:
         return False
     
     def lookupFuncST(self,current,pl):
-        # print(pl.split("->")[1])
         scopeLimit=self.ScopeNumber
         ST=None
         while(scopeLimit is not None):

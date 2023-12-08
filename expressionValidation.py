@@ -27,7 +27,7 @@ def get_result_type(operator, left, right):
 
 
 def get_operand_type(id):
-    if re.match(r"true|false$", id):
+    if re.match(r"True|False$", id):
         return "bool"
     elif re.match(r'^"[^"]*"$', id):
         return "string"
@@ -54,6 +54,7 @@ def is_operand(token):
 
 
 def build_expression_tree_with_types(infix_expression):
+    print(infix_expression)
     stack = []
     output = []
 
