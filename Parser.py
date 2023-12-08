@@ -1,3 +1,5 @@
+from expressionValidation import build_expression_tree_with_types
+
 DATATYPES = ["num", "string", "bool", "fp", "char"]
 CONST = ["int_const", "FP_const", "str_const", "bool_const", "char_const"]
 KEYWORDS = [
@@ -65,6 +67,7 @@ class Parser:
         self.arrayDimension = 0
         self.referenceFunction=None
         self.isArray=False
+        self.expression=[]
 
     def increase(self):
         self.token_index += 1
@@ -1129,6 +1132,7 @@ class Parser:
 
     def OE1(self):
         if self.value_part == "||":
+            self.expression.append(self.value_part)
             self.increase()
             self.AE()
             self.OE1()
@@ -1141,6 +1145,7 @@ class Parser:
 
     def AE1(self):
         if self.value_part == "&&":
+            self.expression.append(self.value_part)
             self.increase()
             self.RE()
             self.AE1()
@@ -1153,6 +1158,7 @@ class Parser:
 
     def RE1(self):
         if self.class_part == "RO":
+            self.expression.append(self.value_part)
             self.increase()
             self.E()
             self.RE1()
@@ -1165,6 +1171,7 @@ class Parser:
 
     def E1(self):
         if self.class_part == "PM":
+            self.expression.append(self.value_part)
             self.increase()
             self.T()
             self.E1()
@@ -1177,6 +1184,7 @@ class Parser:
 
     def T1(self):
         if self.class_part == "MD":
+            self.expression.append(self.value_part)
             self.increase()
             self.F()
             self.T1()
@@ -1189,16 +1197,18 @@ class Parser:
             # print(self.value_part,1083)
             self.dot()
         elif self.class_part in CONST:
-            print(self.Type,190)
+            self.expression.append(self.value_part)
             if(self.Type==CONST_EQUIVALENT_DT[self.class_part]):
                 self.increase()
             else:
                 self.TypeMismatch()
             # print(self.value_part,1099)
         elif self.value_part == "(":
+            self.expression.append(self.value_part)
             self.increase()
             self.S()
         elif self.value_part == "!":
+            self.expression.append(self.value_part)
             self.increase()
             self.F()
         elif self.value_part == "this":
