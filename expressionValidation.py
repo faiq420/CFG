@@ -12,11 +12,17 @@ class Node:
 
 
 def get_result_type(operator, left, right):
-    print(operator, left, right,15)
+    # print(operator, left, right,15)
     if left == right and operator in ["==", "!=", "<=", ">=", "<", ">"]:
         return "bool"
     elif left == "num" and right == "num":
         return "num"
+    elif left == "num" and right == "fp":
+        return "fp"
+    elif left == "fp" and right == "fp":
+        return "fp"
+    elif left == "fp" and right == "num":
+        return "fp"
     elif left == "string" and right == "char" and operator == "+":
         return "string"
     elif left == "string" and right == "string" and operator == "+":
@@ -32,16 +38,14 @@ def get_operand_type(id):
         return "bool"
     elif re.match(r'^"[^"]*"$', id):
         return "string"
-
     elif re.match(r"'(?:\\.|[^\\'])'", id):
         return "char"
-
+    elif re.match(r'^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$',id):
+        return "fp"
     elif re.match(r"[0-9]+", id):
         return "num"
     else:
         return "num"
-
-    pass
 
 
 def get_precedence(operator):
@@ -94,7 +98,6 @@ def build_tree_from_postfix(postfix_expression):
             result_type = get_result_type(
                 token.value, left_operand.node_type, right_operand.node_type
             )
-            print(result_type,96)
             operator_node.node_type = result_type
             stack.append(operator_node)
     result=stack.pop()        

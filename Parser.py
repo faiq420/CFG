@@ -172,8 +172,8 @@ class Parser:
         self.raise_error(f"Function {self.Name} is void hence can not return expression")
 
     def compatibility_check(self, typeone, typetwo, operator):
-        if typeone == "number" and typetwo == "number":
-            return "number"
+        if typeone == "num" and typetwo == "num":
+            return "num"
         elif typeone == "string" and typetwo == "char" and operator == "+":
             return "string"
         elif typeone == "string" and typetwo == "string" and operator == "+":
@@ -1232,10 +1232,11 @@ class Parser:
             self.dot()
         elif self.class_part in CONST:
             self.expression.append(self.value_part)
-            if(self.Type==CONST_EQUIVALENT_DT[self.class_part]):
-                self.increase()
-            else:
-                self.TypeMismatch()
+            self.increase()
+            # if(self.Type==CONST_EQUIVALENT_DT[self.class_part]):
+            #     self.increase()
+            # else:
+            #     self.TypeMismatch()
             # print(self.value_part,1099)
         elif self.value_part == "(":
             self.expression.append(self.value_part)
