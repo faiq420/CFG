@@ -12,10 +12,11 @@ class Node:
 
 
 def get_result_type(operator, left, right):
+    print(operator, left, right,15)
     if left == right and operator in ["==", "!=", "<=", ">=", "<", ">"]:
         return "bool"
-    elif left == "number" and right == "number":
-        return "number"
+    elif left == "num" and right == "num":
+        return "num"
     elif left == "string" and right == "char" and operator == "+":
         return "string"
     elif left == "string" and right == "string" and operator == "+":
@@ -23,7 +24,7 @@ def get_result_type(operator, left, right):
     elif left == "char" and right == "char" and operator == "+":
         return "string"
     else:
-        raise Exception("Type Missmatch!")
+        raise Exception("Type Mismatch!")
 
 
 def get_operand_type(id):
@@ -36,9 +37,9 @@ def get_operand_type(id):
         return "char"
 
     elif re.match(r"[0-9]+", id):
-        return "number"
+        return "num"
     else:
-        return "number"
+        return "num"
 
     pass
 
@@ -54,7 +55,6 @@ def is_operand(token):
 
 
 def build_expression_tree_with_types(infix_expression):
-    print(infix_expression)
     stack = []
     output = []
 
@@ -94,7 +94,9 @@ def build_tree_from_postfix(postfix_expression):
             result_type = get_result_type(
                 token.value, left_operand.node_type, right_operand.node_type
             )
+            print(result_type,96)
             operator_node.node_type = result_type
             stack.append(operator_node)
     result=stack.pop()        
+    result.node_type
     return result.node_type

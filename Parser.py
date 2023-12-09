@@ -199,7 +199,6 @@ class Parser:
                 )
         else:
             self.mainFunctionMissing()
-        print(self.expression,"Expression")
         print(self.Scope, "\nScope Table")
         print(self.DefinitionTable, "\nDefinition Table")
         print(self.MemberTable, "\nMember Table")
@@ -371,6 +370,8 @@ class Parser:
             self.S()
             assignment_type = build_expression_tree_with_types(self.expression)
             self.expression = []
+            self.compatibility_check(self.Type.split("->")[0], assignment_type, "relational")
+
         else:
             self.AssignmentOpError()
 
@@ -561,8 +562,8 @@ class Parser:
             self.increase()
             self.expression = []
             self.S()
-            temp_type = build_expression_tree_with_types(self.expression)
-            self.compatibility_check("bool", temp_type, "relational")
+            assignment_type = build_expression_tree_with_types(self.expression)
+            self.compatibility_check("bool", assignment_type, "relational")
             self.expression = []
             if self.value_part == ")":
                 self.increase()
@@ -637,8 +638,8 @@ class Parser:
             self.increase()
             self.expression = []
             self.S()
-            temp_type = build_expression_tree_with_types(self.expression)
-            self.compatibility_check("bool", temp_type, "relational")
+            assignment_type = build_expression_tree_with_types(self.expression)
+            self.compatibility_check("bool", assignment_type, "relational")
             self.expression = []
             if self.value_part == ")":
                 self.increase()
@@ -1255,14 +1256,10 @@ class Parser:
             self.invalidArgumentErr()
 
     def dot(self):
-        print(self.value_part)
         self.referenceFunction=self.value_part
-        print(self.Scope)
         ST=self.lookupST(self.value_part)
-        print(ST,1262)
         if(ST!=False):
-            TypeEquivalency=CONST_EQUIVALENT_DT[ST["Type"]]
-            print(TypeEquivalency,1260)
+            TypeEquivalency=ST["Type"]
             if(TypeEquivalency=="num"):
                 self.expression.append("0")
             elif(TypeEquivalency=="fp"):
