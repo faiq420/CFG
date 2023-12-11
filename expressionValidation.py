@@ -13,7 +13,9 @@ class Node:
 
 def get_result_type(operator, left, right):
     # print(operator, left, right,15)
-    if left == right and operator in ["==", "!=", "<=", ">=", "<", ">"]:
+    if(operator=="!"):
+        return "bool"
+    elif left == right and operator in ["==", "!=", "<=", ">=", "<", ">"]:
         return "bool"
     elif left == "num" and right == "num":
         return "num"

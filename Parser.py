@@ -71,6 +71,7 @@ class Parser:
         self.isArray=False
         self.expression=[]
         self.funcReturnType=None
+        self.members=[]
 
     def increase(self):
         self.token_index += 1
@@ -370,7 +371,6 @@ class Parser:
                     self.invalid_token()
                 self.init()
                 self.isArray=False
-                print(self.value_part,373)
                 self.mul_decl()
             else:
                 self.validateVariableName()
@@ -394,7 +394,7 @@ class Parser:
             self.expression = []
             self.S()
             # print(self.expression,371)
-            assignment_type=""
+            assignment_type="" 
             if(len(self.expression)!=0):
                 assignment_type = build_expression_tree_with_types(self.expression)
                 self.expression = []
@@ -708,12 +708,38 @@ class Parser:
     def ids(self):
         self.Type = self.value_part
         self.classConstructor = self.value_part
-        if(self.next_token=="="):
+        if(self.next_token=="=" or self.next_token=="."):
             ST=self.lookupST(self.value_part)
+            print(ST,713)
             if(ST):
                 self.Type=ST["Type"]
+        print(self.Type,715)
         self.increase()
         self.identifier()
+
+    def att_access(self):
+        if(self.value_part=="."):
+            RDT=self.lookupDT(self.Type)
+            if(len(RDT)!=0):
+                members=self.fetchMembers(self.Type)
+                print(members,725)
+                self.increase()
+                type=None
+                for member in members:
+                    if(member["Name"])==self.value_part:
+                        if(member["AM"]!="private"):
+                            type=member["Type"]
+                        else:
+                            self.raise_error(f"Private Member cannot be accessed")
+                if type==None:
+                    self.invalidAssignment()
+                else:
+                    self.Type=type
+                    self.increase()
+            else:
+                self.invalidAssignment()
+        else:
+            pass
 
     def inc_dec(self):
         if self.class_part == "Identifier":
@@ -1020,7 +1046,7 @@ class Parser:
                 self.closingBracketErr()
 
     def identifier(self):
-        if self.value_part == "=":
+        if self.value_part == "=" or self.value_part==".":
             self.assign_st()
         elif self.value_part == "(":
             self.bracket_exp()
@@ -1030,9 +1056,15 @@ class Parser:
             self.indexationError()
 
     def assign_st(self):
+        if(self.value_part=="."):
+            self.att_access()
         if self.value_part == "=":
             self.increase()
+            self.expression = []
             self.S()
+            assignment_type = build_expression_tree_with_types(self.expression)
+            self.expression = []
+            self.compatibility_check(self.Type.split("->")[0], assignment_type, "relational")
             if self.value_part == ";":
                 self.increase()
                 pass
@@ -1098,12 +1130,11 @@ class Parser:
                             self.increase()
                             if self.value_part == ")":
                                 RDT=self.lookupDT(self.childRef)
-                                print(RDT,1074)
                                 if(len(RDT)!=0):
                                     if(self.childRef==self.parentRef):
-                                        self.insertST(childRef, self.childRef, self.ScopeNumber - 1)
+                                        self.insertST(childRef, self.childRef, self.ScopeNumber)
                                     elif(self.parentRef in RDT[0]["Parent"]):
-                                        self.insertST(childRef, self.childRef, self.ScopeNumber - 1)
+                                        self.insertST(childRef, self.childRef, self.ScopeNumber)
                                     else:
                                         self.invalidReference()
                                 self.increase()
@@ -1513,3 +1544,7 @@ class Parser:
         checkByParent=list(filter(lambda x: x["Reference"] == r, check))
         checkByParams=list(filter(lambda y:y["Type"].split("->")==pl.split("->"),checkByParent))
         return checkByParams
+    
+    def fetchMembers(self,p):
+        checkByParent=list(filter(lambda x: x["Reference"] == p, self.MemberTable))
+        return checkByParent

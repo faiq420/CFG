@@ -3,25 +3,26 @@ func virtual num hsdhs(num a,num b,bool q){return;}
 num aasasas = hsdhs(1,2,False).x;
 string z="x";
 fp s=23.2;
-#bool dqwbjd= a <= 3;
+bool dqwbjd= 3<= 3;
 #func virtual num add(num a,num b,W x){return a+b;}*/
 class public A(){
     private string rand_21="sa";
     public bool x=False;
+    public num hdjwd=0;
     this.rand_21="3";
     num q=0;
     num p=0;
     A a1=new A();
+    a1.hdjwd=0;
     func virtual public string add(num a,num b){return q+p;}
     string sajk=this.add(1,2);
     /*A(){
         #this.x=False;
     }*/
-
 }
 class public B(A){
-    B b1 = new B();
-}
+    B b1 = new A();
+} 
 void main(){
     fp floatingPt=-0.00;
     num wdnjnw= 9 ;
