@@ -1,10 +1,10 @@
-char x,y,wdwdw= 'c' , dd,uu='q' ;
+@char x,y,wdwdw= 'c' , dd,uu='q' ;
 func virtual num hsdhs(num a,num b,bool q){return;}
 num aasasas = hsdhs(1,2,False).x;
 string z="x";
 fp s=23.2;
 bool dqwbjd= 3<= 3;
-#func virtual num add(num a,num b,W x){return a+b;}*/
+#func virtual num add(num a,num b,W x){return a+b;}
 class public A(){
     private string rand_21="sa";
     public bool x=False;
@@ -16,20 +16,19 @@ class public A(){
     a1.hdjwd=0;
     func virtual public string add(num a,num b){return q+p;}
     string sajk=this.add(1,2);
-    /*A(){
+    A(){
         #this.x=False;
-    }*/
+    }
 }
 class public B(A){
     B b1 = new A();
-} 
+} @
 void main(){
-    fp floatingPt=-0.00;
+   @ fp floatingPt=-0.00;
     num wdnjnw= 9 ;
     fp hdjkqwbkj=( wdnjnw + 4 * 8 / 2) / ( floatingPt + 5 * 6 /7)*99;
     #num arr [] = [[[0],[wdnjnw]],[0,0]];
     #func virtual void sub(num a,num b,W x){return a+b;}
-   # num a=!s;
     bool x=False;
     try{
         string a="Any";
@@ -61,6 +60,6 @@ void main(){
     enum random={
         CHECK=1,
         ASA=2
-    }
+    } @
 }
-#num a=!s;
+#bool a=!s;

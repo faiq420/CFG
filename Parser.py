@@ -1357,6 +1357,9 @@ class Parser:
                 self.expression.append(self.value_part)
             elif(TypeEquivalency=="string"):
                 self.expression.append(self.value_part)
+        # elif(self.next_token not in ".([" and self.value_part!=";"):
+        #     print(self.next_token,1361)
+        #     self.undeclaredVariable()
         if self.next_token == ".":
             self.increase()
             self.increase()
