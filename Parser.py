@@ -1,3 +1,4 @@
+import re
 from expressionValidation import build_expression_tree_with_types
 
 DATATYPES = ["num", "string", "bool", "fp", "char"]
@@ -64,10 +65,12 @@ class Parser:
         self.CCR=None
         self.classConstructor = None
         self.currentEnum = None
-        self.arrayDimension = 0
+        self.childRef=None
+        self.parentRef=None
         self.referenceFunction=None
         self.isArray=False
         self.expression=[]
+        self.funcReturnType=None
 
     def increase(self):
         self.token_index += 1
@@ -171,6 +174,12 @@ class Parser:
     def voidReturnTypeError(self):
         self.raise_error(f"Function {self.Name} is void hence can not return expression")
 
+    def undeclaredVariable(self):
+        self.raise_error(f"Undeclared variable {self.value_part}")
+        
+    def invalidReference(self):
+        self.raise_error(f"{self.parentRef} cannot be used to make objects of {self.childRef}")
+
     def compatibility_check(self, typeone, typetwo, operator):
         if typeone == "num" and typetwo == "num":
             return "num"
@@ -257,6 +266,7 @@ class Parser:
             ST=self.lookupST(self.value_part)
             print(ST,218)
             if(ST!=False):
+                # self.expression.append(ST["Type"])
                 if "->" not in self.Type:
                     self.Type = self.Type + "->" + ST["Type"]
                 else:
@@ -271,6 +281,7 @@ class Parser:
                 pass
         elif self.class_part in CONST:
             CT=CONST_EQUIVALENT_DT[self.class_part]
+            # self.expression.append(CT)
             if "->" not in self.Type:
                 self.Type = self.Type + "->" + CT
             else:
@@ -368,9 +379,17 @@ class Parser:
             self.increase()
             self.expression = []
             self.S()
-            assignment_type = build_expression_tree_with_types(self.expression)
-            self.expression = []
-            self.compatibility_check(self.Type.split("->")[0], assignment_type, "relational")
+            # print(self.expression,371)
+            assignment_type=""
+            if(len(self.expression)!=0):
+                assignment_type = build_expression_tree_with_types(self.expression)
+                self.expression = []
+            else:
+                assignment_type=self.funcReturnType
+            if(self.isArray==True):
+                pass
+            else:
+                self.compatibility_check(self.Type.split("->")[0], assignment_type, "relational")
 
         else:
             self.AssignmentOpError()
@@ -514,7 +533,6 @@ class Parser:
             self.increase()
             self.fn_call()
             self.dot()
-            print(self.value_part,445)
             # self.this_st_ext()
             self.CCR=None
 
@@ -725,10 +743,14 @@ class Parser:
     def ret(self):
         self.increase()
         if self.value_part != ";":
-            if("->" in self.Type and self.Type.split("->")[0]=="void"):
+            if(self.Type!=None and self.Type.split("->")[0]=="void"):
                 self.voidReturnTypeError()
             else:
+                self.expression = []
                 self.S()
+                if(len(self.expression)!=0):
+                    assignment_type = build_expression_tree_with_types(self.expression)
+                    self.expression = []
             if self.value_part == ";":
                 self.increase()
                 print("VALID RETURN STATEMENT")
@@ -1037,31 +1059,41 @@ class Parser:
             )
 
     def obj_dec(self):
-        # self.increase()
+        self.childRef=self.classConstructor
         if self.class_part == "Identifier":
-            self.Name = self.value_part
+            childRef = self.value_part
             self.increase()
-            self.insertST(self.Name, self.Type, self.ScopeNumber)
             if self.value_part == "=":
                 self.increase()
-                if self.value_part in KEYWORDS:
+                if self.value_part=="new":
+                    self.increase()
                     if self.class_part == "Identifier":
+                        self.parentRef=self.value_part
                         self.increase()
                         if self.value_part == "(":
                             self.increase()
                             if self.value_part == ")":
+                                RDT=self.lookupDT(self.childRef)
+                                print(RDT,1074)
+                                if(len(RDT)!=0):
+                                    if(self.childRef==self.parentRef):
+                                        self.insertST(childRef, self.childRef, self.ScopeNumber - 1)
+                                    elif(self.parentRef in RDT[0]["Parent"]):
+                                        self.insertST(childRef, self.childRef, self.ScopeNumber - 1)
+                                    else:
+                                        self.invalidReference()
                                 self.increase()
                                 if self.value_part == ";":
+                                    print("OBJECT CREATED")
                                     self.increase()
-                                    pass
                                 else:
                                     self.SemiColonErr()
                             else:
                                 self.closingBracketErr()
                         else:
                             self.openingBracketErr()
-                    else:
-                        self.validateVariableName()
+                    # else:
+                    #     self.validateVariableName()
                 else:
                     self.invalid_token()
             else:
@@ -1075,20 +1107,19 @@ class Parser:
             if(self.currentClass is None):
                 ST=self.lookupFuncST(self.referenceFunction,self.Type)
                 if(ST is not False):
-                    self.increase()
+                    self.funcReturnType=ST["Type"].split("->")[0]
+                    # self.increase()
                 else:
                     self.invalidAssignment()
             elif(self.currentClass is not None):
-                    print(self.referenceFunction,1028)
                     RMT=self.LookupFuncMT(self.referenceFunction,self.Type,self.currentClass)
-                    print(RMT,1030)
                     if(len(RMT)==0):
                         self.invalidAssignment()
                     else:
-                        self.increase()
+                        self.funcReturnType=RMT[0]["Type"].split("->")[0]
+                        # self.increase()
             # self.increase()
-            if self.value_part == ";":
-                pass
+            
             else:
                 self.SemiColonErr()
         else:
@@ -1271,7 +1302,6 @@ class Parser:
                 self.expression.append(self.value_part)
             elif(TypeEquivalency=="string"):
                 self.expression.append(self.value_part)
-
         if self.next_token == ".":
             self.increase()
             self.increase()
@@ -1301,6 +1331,8 @@ class Parser:
                 self.indexationError("]")
         else:
             self.increase()
+            if(re.match(r"[a-zA-Z]$",self.value_part)):
+                self.dot()
             # if(self.currentClass is None):
             #     if("->" in self.Type):
             #         ST=self.lookupFuncST(self.referenceFunction,self.Type)
