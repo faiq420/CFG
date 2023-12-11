@@ -128,17 +128,17 @@ class Tokenizer:
                 continue
 
                 #for comments
-            if(self.currentChar=='/'and self.nextChar=="*"):
+            if(self.currentChar=='@'):
                 self.increase()
-                self.increase()
-                while(self.currentChar!='*' and self.nextChar!='/'):
+                # self.increase()
+                while(self.currentChar!='@' ):
                     # global line_Number
                     if(self.currentChar == '\n'):
                         line_Number+=1
                         self.increase()
                         continue
                     self.increase()
-                self.increase()
+                # self.increase()
                 self.increase()
                 continue
             
@@ -633,7 +633,7 @@ class Tokenizer:
                             
 
             self.increase()
-        # print(self.tokens,len(self.tokens))
+        print(self.tokens,len(self.tokens))
         return self.tokens
 
 
