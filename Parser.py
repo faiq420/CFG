@@ -357,6 +357,8 @@ class Parser:
                 self.Name = self.value_part
                 self.insertST(self.Name, self.Type, self.ScopeNumber)
                 self.increase()
+                if(self.value_part==","):
+                    self.ID_ext()
                 if(self.value_part=='['):
                     self.increase()
                     if(self.value_part==']'):
@@ -368,11 +370,23 @@ class Parser:
                     self.invalid_token()
                 self.init()
                 self.isArray=False
+                print(self.value_part,373)
                 self.mul_decl()
             else:
                 self.validateVariableName()
         else:
             self.invalidArgumentErr()
+
+    def ID_ext(self):
+        if(self.value_part==","):
+            self.increase()
+            if self.class_part == "Identifier":
+                self.Name = self.value_part
+                self.insertST(self.Name, self.Type, self.ScopeNumber)
+                self.increase()
+                self.ID_ext()
+        else:
+            pass
 
     def init(self):
         if self.value_part == "=":
@@ -401,7 +415,17 @@ class Parser:
             self.increase()
         elif self.value_part == ",":
             self.increase()
-            self.decl()
+            if self.class_part == "Identifier":
+                self.Name = self.value_part
+                self.insertST(self.Name, self.Type, self.ScopeNumber)
+                self.increase()
+                if(self.value_part==","):
+                    self.ID_ext()
+                if(self.value_part!="="):
+                    self.invalid_token()
+                self.init()
+                self.isArray=False
+                self.mul_decl()
         else:
             self.raise_error(f"Unexpected token {self.value_part}")
 

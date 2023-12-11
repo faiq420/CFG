@@ -1,4 +1,4 @@
-char x= 'c' ;
+char x,y,wdwdw= 'c' , dd,uu='q' ;
 func virtual num hsdhs(num a,num b,bool q){return;}
 num aasasas = hsdhs(1,2,False).x;
 string z="x";
