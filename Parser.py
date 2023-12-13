@@ -963,18 +963,10 @@ class Parser:
         if self.class_part == "Identifier":
             self.insertMT(self.value_part, "-", "-", self.currentEnum)
             self.increase()
-            if self.value_part == "=":
-                self.increase()
-                self.S()
-                # self.increase()
-                if self.value_part == ",":
-                    self.key_st()
-                else:
-                    pass
+            if self.value_part == ",":
+                self.key_st()
             else:
-                self.AssignmentOpError()
-        else:
-            self.validateVariableName()
+                pass
 
     def mul_key_st(self):
         if self.value_part == ",":
@@ -1051,7 +1043,7 @@ class Parser:
         elif self.value_part == "(":
             self.bracket_exp()
         elif self.class_part == "Identifier":
-            self.obj_dec()
+            self.enum_obj_dec()
         else:
             self.indexationError()
 
@@ -1114,47 +1106,63 @@ class Parser:
                 f"Invalid constructor {self.classConstructor} for class {self.currentClass}"
             )
 
-    def obj_dec(self):
+    def enum_obj_dec(self):
         self.childRef=self.classConstructor
         if self.class_part == "Identifier":
-            childRef = self.value_part
+            self.Name = self.value_part
             self.increase()
             if self.value_part == "=":
                 self.increase()
-                if self.value_part=="new":
-                    self.increase()
-                    if self.class_part == "Identifier":
-                        self.parentRef=self.value_part
-                        self.increase()
-                        if self.value_part == "(":
-                            self.increase()
-                            if self.value_part == ")":
-                                RDT=self.lookupDT(self.childRef)
-                                if(len(RDT)!=0):
-                                    if(self.childRef==self.parentRef):
-                                        self.insertST(childRef, self.childRef, self.ScopeNumber)
-                                    elif(self.parentRef in RDT[0]["Parent"]):
-                                        self.insertST(childRef, self.childRef, self.ScopeNumber)
-                                    else:
-                                        self.invalidReference()
-                                self.increase()
-                                if self.value_part == ";":
-                                    print("OBJECT CREATED")
-                                    self.increase()
-                                else:
-                                    self.SemiColonErr()
-                            else:
-                                self.closingBracketErr()
-                        else:
-                            self.openingBracketErr()
-                    # else:
-                    #     self.validateVariableName()
-                else:
-                    self.invalid_token()
+                self.enum_obj_dec_ext()
+                
             else:
                 self.AssignmentOpError()
         else:
             self.validateVariableName()
+
+    def enum_obj_dec_ext(self):
+        if self.value_part=="new":
+            self.increase()
+            if self.class_part == "Identifier":
+                self.parentRef=self.value_part
+                self.increase()
+                if self.value_part == "(":
+                    self.increase()
+                    if self.value_part == ")":
+                        RDT=self.lookupDT(self.childRef)
+                        if(len(RDT)!=0):
+                            if(self.childRef==self.parentRef):
+                                self.insertST(self.Name, self.childRef, self.ScopeNumber)
+                            elif(self.parentRef in RDT[0]["Parent"]):
+                                self.insertST(self.Name, self.childRef, self.ScopeNumber)
+                            else:
+                                self.invalidReference()
+                        self.increase()
+                        if self.value_part == ";":
+                            print("OBJECT CREATED")
+                            self.increase()
+                        else:
+                            self.SemiColonErr()
+                    else:
+                                self.closingBracketErr()
+                else:
+                            self.openingBracketErr()
+                    # else:
+                    #     self.validateVariableName()
+        elif (self.class_part=="Identifier"):
+            members=self.fetchMembers(self.childRef)
+            valid = False
+            for member in members:
+                if(member["Name"]==self.value_part):
+                    self.increase()
+                    valid=False
+            if(valid==False and self.value_part!=";"):
+                self.invalidAssignment()
+            else:
+                self.increase()
+                print("ENUM ASSIGNED")
+        else:
+            self.invalid_token()
 
     def fn_call(self):
         self.args()

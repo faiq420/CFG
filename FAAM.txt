@@ -1,4 +1,4 @@
-@char x,y,wdwdw= 'c' , dd,uu='q' ;
+char x,y,wdwdw= 'c' , dd,uu='q' ;
 func virtual num hsdhs(num a,num b,bool q){return;}
 num aasasas = hsdhs(1,2,False).x;
 string z="x";
@@ -22,12 +22,14 @@ class public A(){
 }
 class public B(A){
     B b1 = new A();
-} @
+}
 void main(){
-   @ fp floatingPt=-0.00;
+   fp floatingPt=-0.00;
     num wdnjnw= 9 ;
+    A a2=new A();
+    a2.x=True;
     fp hdjkqwbkj=( wdnjnw + 4 * 8 / 2) / ( floatingPt + 5 * 6 /7)*99;
-    #num arr [] = [[[0],[wdnjnw]],[0,0]];
+    num arr [] = [[[0],[wdnjnw]],[0,0]];
     #func virtual void sub(num a,num b,W x){return a+b;}
     bool x=False;
     try{
@@ -53,13 +55,13 @@ void main(){
     }
     until(a <= 3){break;}
     enum TextStyle ={
-    ITALICS = 1,
-    BOLD = 2,
-    UNDERLINE = 4
+    ITALICS,
+    BOLD,
+    UNDERLINE
     }
     enum random={
-        CHECK=1,
-        ASA=2
-    } @
+        CHECK,
+        ASA
+    }
+    random variable=CHECK;
 }
-#bool a=!s;
