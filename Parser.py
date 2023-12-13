@@ -72,6 +72,7 @@ class Parser:
         self.expression=[]
         self.funcReturnType=None
         self.members=[]
+        self.isSealed=False
 
     def increase(self):
         self.token_index += 1
@@ -251,7 +252,7 @@ class Parser:
         elif self.value_part == "func":
             self.fn_def()
             self.defs()
-        elif self.value_part == "class":
+        elif self.value_part == "class" or self.value_part =="sealed":
             self.class_dec()
             self.defs()
         elif self.value_part == "enum":
@@ -500,8 +501,6 @@ class Parser:
             self.br_cont()
         elif self.value_part == "return":
             self.ret()
-        elif self.value_part == "class":
-            self.class_dec()
         elif self.value_part == "this":
             self.this_st()
         elif self.value_part == "try":
@@ -710,10 +709,8 @@ class Parser:
         self.classConstructor = self.value_part
         if(self.next_token=="=" or self.next_token=="."):
             ST=self.lookupST(self.value_part)
-            print(ST,713)
             if(ST):
                 self.Type=ST["Type"]
-        print(self.Type,715)
         self.increase()
         self.identifier()
 
@@ -722,7 +719,6 @@ class Parser:
             RDT=self.lookupDT(self.Type)
             if(len(RDT)!=0):
                 members=self.fetchMembers(self.Type)
-                print(members,725)
                 self.increase()
                 type=None
                 for member in members:
@@ -939,7 +935,7 @@ class Parser:
         self.increase()
         if self.class_part == "Identifier":
             self.currentEnum = self.value_part
-            self.insertDT(self.currentEnum, "enum", "-", "-")
+            self.insertDT(self.currentEnum, "enum", "-","-", "-")
             self.increase()
             if self.value_part == "=":
                 self.increase()
@@ -975,6 +971,10 @@ class Parser:
             pass
 
     def class_dec(self):
+        if self.value_part=="sealed":
+            self.isSealed=True
+            print(self.value_part,978)
+            self.increase()
         self.increase()
         self.ScopeNumber += 1
         if self.value_part in ACCESS_MODIFIERS:
@@ -982,7 +982,8 @@ class Parser:
             self.Type = "class"
             self.increase()
             self.classList()
-            self.insertDT(self.Name, self.Type, self.AccessModifier, self.PL)
+            classModifier="sealed" if self.isSealed==True else "-"
+            self.insertDT(self.Name, self.Type, self.AccessModifier,classModifier, self.PL)
             self.PL = []
             if self.value_part == "{":
                 self.increase()
@@ -1085,7 +1086,7 @@ class Parser:
             self.params()
             if self.value_part == ")":
                 self.insertMT(
-                    self.currentClass, "void", "public", self.currentClass
+                    self.currentClass, self.Type, "public", self.currentClass
                 )
                 self.increase()
                 if self.value_part == "{":
@@ -1155,7 +1156,8 @@ class Parser:
             for member in members:
                 if(member["Name"]==self.value_part):
                     self.increase()
-                    valid=False
+                    self.insertST(self.Name, self.childRef, self.ScopeNumber)
+                    valid=True
             if(valid==False and self.value_part!=";"):
                 self.invalidAssignment()
             else:
@@ -1461,11 +1463,11 @@ class Parser:
         self.ScopeNumber -= 1
         self.Scope = filteredScopeTb
 
-    def insertDT(self, n, t, a, p):
+    def insertDT(self, n, t, a,c, p):
         DT = self.lookupDT(n)
         if len(DT) == 0:
             if len(p) == 0:
-                obj = {"Name": n, "Type": t, "AM": a, "Parent": p}
+                obj = {"Name": n, "Type": t, "AM": a,"CM":c, "Parent": p}
                 self.DefinitionTable.append(obj)
             else:
                 exists = True
@@ -1475,10 +1477,13 @@ class Parser:
                         if len(PDT) == 0:
                             exists = False
                             self.RedeclarationError(
-                                f"Parent Class({parent}) for class {n} doesn't exist."
+                                f"Parent Class({parent}) for class {n} doesn't exist"
                             )
+                        elif PDT[0]["AM"]=="private" or PDT[0]["CM"]=="sealed":
+                            exists=False
+                            self.raise_error(f"Private Class ({parent}) can not be inherited")
                 if exists == True:
-                    obj = {"Name": n, "Type": t, "AM": a, "Parent": p}
+                    obj = {"Name": n, "Type": t, "AM": a,"CM":c, "Parent": p}
                     self.DefinitionTable.append(obj)
         else:
             self.RedeclarationError(f"Class/Enum of name {n} already exists")
@@ -1489,7 +1494,7 @@ class Parser:
 
     def insertMT(self, n, t, a, r):
         DT = self.lookupMT(n)
-        if len(DT) == 0:
+        if len(DT) == 0 or DT[0]["Type"]!=t:
             if len(r) == 0:
                 obj = {"Name": n, "Type": t, "AM": a, "Reference": r}
                 self.MemberTable.append(obj)

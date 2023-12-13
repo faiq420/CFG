@@ -1,6 +1,6 @@
 import re
 
-precedence = {"!":0,'(': 1, ')': 1, '==': 2, '!=': 2, '<=': 3, '>=': 3, '<': 3, '>': 3, '||': 4, '&&': 5, '+': 6, '-': 6, '*': 7, '/': 7,'%': 7}
+precedence = {"!": 0, '(': 1, ')': 1, '==': 2, '!=': 2, '<=': 3, '>=': 3, '<': 3, '>': 3, '||': 4, '&&': 5, '+': 6, '-': 6, '*': 7, '/': 7, '%': 7}
 
 
 class Node:
@@ -12,8 +12,7 @@ class Node:
 
 
 def get_result_type(operator, left, right):
-    # print(operator, left, right,15)
-    if(operator=="!"):
+    if operator == "!":
         return "bool"
     elif left == right and operator in ["==", "!=", "<=", ">=", "<", ">"]:
         return "bool"
@@ -42,11 +41,9 @@ def get_operand_type(id):
         return "string"
     elif re.match(r"'(?:\\.|[^\\'])'", id):
         return "char"
-    elif re.match(r'^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$',id):
+    elif re.match(r'^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$', id):
         return "fp"
     elif re.match(r"[0-9]+", id):
-        return "num"
-    else:
         return "num"
 
 
@@ -77,8 +74,12 @@ def build_expression_tree_with_types(infix_expression):
                 output.append(Node(stack.pop()))
             stack.pop()  # Pop the '('
         elif not is_operand(token):
+            # Handle unary operator "!"
             while stack and get_precedence(token) <= get_precedence(stack[-1]):
-                output.append(Node(stack.pop()))
+                if stack[-1] == "!":
+                    output.append(Node(stack.pop()))
+                else:
+                    break
             stack.append(token)
 
     while stack:
@@ -92,16 +93,27 @@ def build_tree_from_postfix(postfix_expression):
         if is_operand(token.value):
             stack.append(token)
         elif not is_operand(token.value):
-            right_operand = stack.pop()
-            left_operand = stack.pop()
-            operator_node = Node(token.value)
-            operator_node.left = left_operand
-            operator_node.right = right_operand
-            result_type = get_result_type(
-                token.value, left_operand.node_type, right_operand.node_type
-            )
-            operator_node.node_type = result_type
-            stack.append(operator_node)
-    result=stack.pop()        
-    result.node_type
+            if token.value == "!":
+                operand = stack.pop()
+                operator_node = Node(token.value)
+                operator_node.right = operand
+                operator_node.node_type = get_result_type(
+                    token.value, None, operand.node_type
+                )
+                stack.append(operator_node)
+            else:
+                right_operand = stack.pop()
+                left_operand = stack.pop()
+                operator_node = Node(token.value)
+                operator_node.left = left_operand
+                operator_node.right = right_operand
+                result_type = get_result_type(
+                    token.value, left_operand.node_type, right_operand.node_type
+                )
+                operator_node.node_type = result_type
+                stack.append(operator_node)
+
+    result = stack.pop()
     return result.node_type
+
+
