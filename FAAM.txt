@@ -1,7 +1,11 @@
-char x,y,wdwdw= 'c' , dd,uu='q' ;
-func virtual num hsdhs(num a,num b,bool q){return;}
-num aasasas = hsdhs(1,2,False).x;
-string z="x";
+char y,wdwdw= 'c' , dd,uu='q' ;
+
+func num hsdhs(num y,num b,bool q){return;}
+func num hsdhs(num y,num b){return;}
+
+num x=21;
+#num aasasas = hsdhs(1,2,False);
+#string z= "x" ;
 fp s= -23.2;
 bool dqwbjd= 3<= 3;
 #func virtual num add(num a,num b,W x){return a+b;}
@@ -15,37 +19,34 @@ class public A(){
     A a1=new A();
     a1.hdjwd=0;
     func virtual public string add(num a,num b){return q+p;}
-    string sajk=this.add(1,2);
+    #string sajk=this.add(1,2);
     A(){
         this.x=False;
     }
     A(int wq,bool bq){
-        @this.x=bq;
-        this.hdjwd=wq;@
+        this.x=bq;
     }
     A(int wq,bool bq, string sq){
-        @this.x=bq;
-        this.hdjwd=wq;@
     }
 }
 class public B(A){
-    B b1 = new A();
+    A b1 = new A();
     public bool boolean=False;
 }
-@sealed class public C(){
+sealed class public C(){
     
 }
-class public D(C){
+@class public D(C){
 
 }@
 void main(){
-   fp floatingPt=-0.00;
+    fp floatingPt=-0.00;
     num wdnjnw= 9 ;
     A a2=new A();
     B b2=new B();
     #a2.x=b2.boolean;
-    fp hdjkqwbkj=( wdnjnw + 4 * 8 / 2) / ( floatingPt + 5 * 6 /7)*99;
-    num arr [] = [[[0],[wdnjnw]],[0,0]];
+    fp hdjkqwbkj=( wdnjnw + 4 * 8 / 2) / ( floatingPt + 5 * 6 /7)*99 || ( wdnjnw + 4 * 8 / 2) / ( floatingPt + 5 * 6 /7)*99;
+    num arr [] = [[[0],["wdnjnw"]],[0,0]];
     #func virtual void sub(num a,num b,W x){return a+b;}
     bool x=False;
     try{
@@ -81,4 +82,5 @@ void main(){
     }
     random variable=CHECK;
 }
-bool ksa=!True;
+bool djwi=False;
+bool ksa=!djwi;

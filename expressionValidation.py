@@ -1,6 +1,22 @@
 import re
 
-precedence = {"!": 0, '(': 1, ')': 1, '==': 2, '!=': 2, '<=': 3, '>=': 3, '<': 3, '>': 3, '||': 4, '&&': 5, '+': 6, '-': 6, '*': 7, '/': 7, '%': 7}
+precedence = {
+    "!": 0,
+    "(": 1,
+    ")": 1,
+    "==": 2,
+    "!=": 2,
+    "<=": 3,
+    ">=": 3,
+    "<": 3,
+    ">": 3,
+    "||": 4,
+    "&&": 5,
+    "+": 6,
+    "-": 6,
+    "*": 7,
+    "/": 7,
+}
 
 
 class Node:
@@ -41,7 +57,7 @@ def get_operand_type(id):
         return "string"
     elif re.match(r"'(?:\\.|[^\\'])'", id):
         return "char"
-    elif re.match(r'^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$', id):
+    elif re.match(r"^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$", id):
         return "fp"
     elif re.match(r"[0-9]+", id):
         return "num"
@@ -63,9 +79,7 @@ def build_expression_tree_with_types(infix_expression):
 
     for token in infix_expression:
         if is_operand(token):
-            operand_type = get_operand_type(
-                token
-            )  # Implement this based on your symbol table
+            operand_type = get_operand_type(token)
             output.append(Node(token, operand_type))
         elif token == "(":
             stack.append(token)
@@ -115,5 +129,3 @@ def build_tree_from_postfix(postfix_expression):
 
     result = stack.pop()
     return result.node_type
-
-
